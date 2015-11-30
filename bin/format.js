@@ -206,7 +206,7 @@ exports.separate = function(str) {
     var rx;
 
     //build the RegExp for finding ansi escape sequences
-    rx = new RegExp('[' + exports.escape.join('') + ']\\[((?:\\d;?)+)+m');
+    rx = new RegExp('[' + ansi.escape.join('') + ']\\[((?:\\d;?)+)+m');
 
     //begin stripping
     while (str.length > 0) {
@@ -250,7 +250,7 @@ exports.transform = function(str, configuration) {
  */
 exports.trim = function(str, start, end) {
     var rx;
-    var template = '([' + exports.escape + ']\\[(?:(?:\\d;?)+)+m)?';
+    var template = '([' + ansi.escape + ']\\[(?:(?:\\d;?)+)+m)?';
 
     //trim the start
     rx = RegExp('^' + template + ' ');
@@ -385,9 +385,9 @@ function getCodeMap() {
         supported: [],
         groups: {}
     };
-    Object.keys(exports.codes).forEach(function(group) {
-        Object.keys(exports.codes[group]).forEach(function(name) {
-            var code = exports.codes[group][name];
+    Object.keys(ansi.codes).forEach(function(group) {
+        Object.keys(ansi.codes[group]).forEach(function(name) {
+            var code = ansi.codes[group][name];
             result.supported.push(code);
             result.groups[code] = group;
         });
@@ -397,9 +397,9 @@ function getCodeMap() {
 
 function getGroupCodes(group) {
     const result = [];
-    if (exports.codes.hasOwnProperty(group)) {
-        Object.keys(exports.codes[group]).forEach(function(name) {
-            var code = exports.codes[group][name];
+    if (ansi.codes.hasOwnProperty(group)) {
+        Object.keys(ansi.codes[group]).forEach(function(name) {
+            var code = ansi.codes[group][name];
             result.push(code);
         });
     }
