@@ -1,6 +1,6 @@
 {
   "name": "cli-format",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A command line formatting that makes it easy to manage word wrapping, indents, padding, columns, and more. Also works with ansi-encoding libraries chalk, colors, and others.",
   "main": "bin/index.js",
   "bin": {
@@ -26,7 +26,13 @@
     "url": "git+https://github.com/Gi60s/cli-format.git"
   },
   "keywords": [
-    "cli"
+    "ansi",
+    "cli",
+    "columns",
+    "format",
+    "formatting",
+    "word",
+    "wrap"
   ],
   "author": "James Speirs <james.speirs@gmail.com>",
   "license": "ISC",
