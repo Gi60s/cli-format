@@ -278,7 +278,7 @@ exports.trim = function(str, start, end) {
 };
 
 exports.words = function(str) {
-    const content = ansi.separate(exports.transform(str));
+    const content = exports.separate(exports.transform(str));
     const words = [];
     var ch;
     var count = 0;
@@ -380,6 +380,32 @@ function analyzeWidth(widths, columnCount) {
     return result;
 }
 
+function getCodeMap() {
+    const result = {
+        supported: [],
+        groups: {}
+    };
+    Object.keys(exports.codes).forEach(function(group) {
+        Object.keys(exports.codes[group]).forEach(function(name) {
+            var code = exports.codes[group][name];
+            result.supported.push(code);
+            result.groups[code] = group;
+        });
+    });
+    return result;
+}
+
+function getGroupCodes(group) {
+    const result = [];
+    if (exports.codes.hasOwnProperty(group)) {
+        Object.keys(exports.codes[group]).forEach(function(name) {
+            var code = exports.codes[group][name];
+            result.push(code);
+        });
+    }
+    return result;
+}
+
 function getSpaces(count) {
     return getFiller(count, ' ');
 }
@@ -396,6 +422,34 @@ function getFiller(count, filler) {
         }
     }
     return result;
+}
+
+function normalize(active, codes, map) {
+    var index;
+    active = active.slice(0);
+    codes = codes.slice(0);
+
+    //look for a reset code
+    index = codes.indexOf('0');
+    if (index !== -1) {
+        active = [0];
+        codes.splice(index, 1);
+    }
+
+    //add and remove codes to update the active group codes
+    codes.forEach(function(code) {
+        var group = map.groups[code];
+        var index;
+        if (group) {
+            getGroupCodes(group).forEach(function(groupCode) {
+                var index = active.indexOf(groupCode);
+                if (index !== -1) active.splice(index, 1);
+            });
+            active.push(code);
+        }
+    });
+
+    return active;
 }
 
 function normalizeConfig(config) {
