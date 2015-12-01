@@ -165,6 +165,8 @@ exports.lines = function(str, configuration) {
 
         //perform a soft break
         } else if (wordWidth > availableWidth || /\n$/.test(word)) {
+            word = word.replace(/\n$/, '');
+            trimmed = trimmed.replace(/\n$/, '');
             if (config.trimEndOfLine && trimmedWidth <= availableWidth) {
                 line += format(trimmed, false) + ansiEncode([0]);
                 line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler);
