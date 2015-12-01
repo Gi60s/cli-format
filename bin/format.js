@@ -1,7 +1,6 @@
 "use strict";
 const ansi                  = require('./ansi');
 const formatConfig          = require('./format-config');
-const objectAssignDeep      = require('object-assign-deep');
 const stringWidth           = require('string-width');
 
 
@@ -19,7 +18,7 @@ exports.columns = function(configuration) {
     var result = '';
 
     //get configuration and strings to process
-    config = objectAssignDeep({}, typeof args[args.length - 1] === 'object' ? args.pop() : formatConfig.config);
+    config = Object.assign({}, formatConfig.config, typeof args[args.length - 1] === 'object' ? args.pop() : {});
     strings = args;
 
     //determine widths to use
