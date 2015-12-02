@@ -182,6 +182,7 @@ exports.lines = function(str, configuration) {
 
             if (config.trimEndOfLine && trimmedWidth <= availableWidth) {
                 line += format(trimmed, false) + ansiEncode([0]);
+                format.adjustPosition(1);
                 line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler);
                 line += config.paddingRight;
                 lines.push(line);
