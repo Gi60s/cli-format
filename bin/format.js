@@ -78,6 +78,7 @@ exports.lines = function(str, configuration) {
     const lines = [];
     const words = data.words;
     var availableWidth;
+    var endOfLine;
     var format;
     var line;
     var lineWidth;
@@ -120,7 +121,7 @@ exports.lines = function(str, configuration) {
         var next = store[0];
         var position = 0;
 
-        return function(word, isNewLine) {
+        function format(word, isNewLine) {
             var i;
             var result;
             var length = word.length;
@@ -147,6 +148,8 @@ exports.lines = function(str, configuration) {
 
             return result;
         }
+
+        return format;
     })();
 
     line = ansiEncode([0]) + config.paddingLeft + config.firstLineIndent;
@@ -164,9 +167,13 @@ exports.lines = function(str, configuration) {
             words.unshift(word.substr(0, width - hardBreakWidth) + config.hardBreak);
 
         //perform a soft break
-        } else if (wordWidth > availableWidth || /\n$/.test(word)) {
-            word = word.replace(/\n$/, '');
-            trimmed = trimmed.replace(/\n$/, '');
+        } else if (wordWidth > availableWidth) {
+            endOfLine = /\n$/.test(word);
+            if (endOfLine) {
+                word = word.replace(/\n$/, '');
+                trimmed = trimmed.replace(/\n$/, '');
+            }
+
             if (config.trimEndOfLine && trimmedWidth <= availableWidth) {
                 line += format(trimmed, false) + ansiEncode([0]);
                 line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler);
@@ -180,6 +187,19 @@ exports.lines = function(str, configuration) {
                 lines.push(line);
                 line = format(word, true);
             }
+
+            if (endOfLine) words.unshift('\n');
+
+        //perform a manual break
+        } else if (/\n$/.test(word)) {
+            word = word.replace(/\n$/, '');
+            line += format(word, false) + ansiEncode([0]);
+            if (config.trimEndOfLine) line = exports.trim(line, false, true);
+            line += ansiEncode([0]);
+            line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler) + config.paddingRight;
+            lines.push(line);
+            format('\n', true); //adjust position
+            line = format('', true);
 
         //add to the current line
         } else {

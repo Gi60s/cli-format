@@ -137,10 +137,22 @@ test('format.lines', function(t) {
     t.deepEqual(
         format.lines(input, { width: 80, filler: '', ansi: false }),
         [
-            'Space before ',
+            'Space before',
             'new line'
         ],
         'space before new line'
+    );
+
+    //       123456789 123456789 123456789
+    input = 'New line after\nsoft wrap';
+    t.deepEqual(
+        format.lines(input, { width: 12, filler: '', ansi: false }),
+        [
+            'New line',
+            'after',
+            'soft wrap'
+        ],
+        'new line after soft wrap'
     );
 
 
