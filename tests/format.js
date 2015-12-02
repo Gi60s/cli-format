@@ -118,7 +118,29 @@ test('format.lines', function(t) {
             '',
             'Side by side'
         ],
-        'new line characters'
+        'side by side new line characters'
+    );
+
+    input = 'One word per line\njust\nlike\nthis';
+    t.deepEqual(
+        format.lines(input, { width: 80, filler: '', ansi: false }),
+        [
+            'One word per line',
+            'just',
+            'like',
+            'this'
+        ],
+        'one word between new line characters'
+    );
+
+    input = 'Space before \nnew line';
+    t.deepEqual(
+        format.lines(input, { width: 80, filler: '', ansi: false }),
+        [
+            'Space before ',
+            'new line'
+        ],
+        'space before new line'
     );
 
 
