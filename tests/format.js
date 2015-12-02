@@ -56,6 +56,7 @@ test('format.lines', function(t) {
         trimStartOfLine: false,
         width: 80
     };
+    var result;
 
     //   123456789 123456789 123456789X
     input =
@@ -83,6 +84,18 @@ test('format.lines', function(t) {
         ],
         'no formatting and fill with spaces'
     );
+
+    input = 'This has an\nun\u001b[4mder\u001b[0mlined word';
+    result = format.lines(input, Object.assign({}, config, { width: 30, filler: '' }));
+    t.deepEqual(
+        result,
+        [
+            '\u001b[0mThis has an\u001b[0m',
+            '\u001b[0mun\u001b[0;4mder\u001b[0mlined word\u001b[0m'
+        ],
+        'formatted word after new line character'
+    );
+
 
     input = '1234 \u001b[1m678 901234\u001b[0m 56';
     t.deepEqual(

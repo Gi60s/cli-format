@@ -192,13 +192,13 @@ exports.lines = function(str, configuration) {
 
         //perform a manual break
         } else if (/\n$/.test(word)) {
-            word = word.replace(/\n$/, '');
+
+            word = word.replace(/\n$/, '');                             //remove newline from end of word
             line += format(word, false) + ansiEncode([0]);
             if (config.trimEndOfLine) line = exports.trim(line, false, true);
-            line += ansiEncode([0]);
             line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler) + config.paddingRight;
             lines.push(line);
-            format('\n', true); //adjust position
+            format(' ', true); //adjust position
             line = format('', true);
 
         //add to the current line
