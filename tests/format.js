@@ -110,8 +110,31 @@ test('format.lines', function(t) {
         , 'word longer than line and no-ansi');
 
 
+    input = 'Two new lines\n\nSide by side';
+    t.deepEqual(
+        format.lines(input, { width: 80, filler: '', ansi: false }),
+        [
+            'Two new lines',
+            '',
+            'Side by side'
+        ],
+        'new line characters'
+    );
 
 
+
+    t.end();
+});
+
+test('format.wrap', function(t) {
+    var input;
+
+    input = 'Two new lines\n\nSide by side';
+    t.equal(
+        format.wrap(input, { width: 80, filler: '', ansi: false }),
+        input,
+        'new line characters'
+    );
 
     t.end();
 });
