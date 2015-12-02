@@ -172,7 +172,7 @@ exports.lines = function(str, configuration) {
                 line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler);
                 line += config.paddingRight;
                 lines.push(line);
-                line = '';
+                line = format('', true);
             } else {
                 if (config.trimEndOfLine) line = exports.trim(line, false, true);
                 line += ansiEncode([0]);
