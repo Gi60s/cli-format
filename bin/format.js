@@ -77,6 +77,7 @@ exports.lines = function(str, configuration) {
     const hardBreakWidth = exports.stringWidth(config.hardBreak);
     const lines = [];
     const words = data.words;
+    var adjustPosition = 0;
     var availableWidth;
     var endOfLine;
     var format;
@@ -149,6 +150,10 @@ exports.lines = function(str, configuration) {
             return result;
         }
 
+        format.adjustPosition = function(amount) {
+            position += amount;
+        };
+
         return format;
     })();
 
@@ -165,6 +170,7 @@ exports.lines = function(str, configuration) {
         if (trimmedWidth > width) {
             words.unshift(word.substr(width - hardBreakWidth));
             words.unshift(word.substr(0, width - hardBreakWidth) + config.hardBreak);
+            adjustPosition = -1 * strWidth(config.hardBreak);
 
         //perform a soft break
         } else if (wordWidth > availableWidth) {
@@ -192,19 +198,26 @@ exports.lines = function(str, configuration) {
 
         //perform a manual break
         } else if (/\n$/.test(word)) {
-
             word = word.replace(/\n$/, '');                             //remove newline from end of word
             line += format(word, false) + ansiEncode([0]);
+            format.adjustPosition(1);
+
             if (config.trimEndOfLine) line = exports.trim(line, false, true);
             line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler) + config.paddingRight;
             lines.push(line);
-            format(' ', true); //adjust position
+
             line = format('', true);
 
         //add to the current line
         } else {
             line += format(word, line.length === 0);
 
+        }
+
+        //do any after word position adjustments that are necessary
+        if (adjustPosition !== 0) {
+            format.adjustPosition(adjustPosition);
+            adjustPosition = 0;
         }
     }
 

@@ -85,12 +85,16 @@ test('format.lines', function(t) {
         'no formatting and fill with spaces'
     );
 
-    input = 'This has an\nun\u001b[4mder\u001b[0mlined word';
-    result = format.lines(input, Object.assign({}, config, { width: 30, filler: '' }));
+    //       123456789 123456789 123456789
+    input = 'In this example ' +
+            'there is an\n' +
+            'un\u001b[4mder\u001b[0mlined word';
+    result = format.lines(input, Object.assign({}, config, { width: 20, filler: '' }));
     t.deepEqual(
         result,
         [
-            '\u001b[0mThis has an\u001b[0m',
+            '\u001b[0mIn this example\u001b[0m',
+            '\u001b[0mthere is an\u001b[0m',
             '\u001b[0mun\u001b[0;4mder\u001b[0mlined word\u001b[0m'
         ],
         'formatted word after new line character'
