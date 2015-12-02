@@ -456,7 +456,7 @@ function normalize(active, codes, map) {
 function normalizeConfig(config) {
     return Object.assign({
         firstLineIndent: 0,
-        hangingLineIndent: 0,
+        hangingIndent: 0,
         paddingLeft: '  ',
         paddingRight: '  ',
         width: process.stdout.columns || 80,
