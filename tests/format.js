@@ -172,6 +172,17 @@ test('format.lines', function(t) {
         'new line after soft wrap'
     );
 
+    //       123456789 12345
+    input = 'Dash break-line';
+    var r = format.lines(input, { width: 11, filler: '', ansi: false });
+    t.deepEqual(
+        r,
+        [
+            'Dash break-',
+            'line'
+        ],
+        'Dash as last character in line'
+    );
 
 
     t.end();
