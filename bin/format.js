@@ -188,7 +188,7 @@ Format.lines = function(str, configuration) {
 
         format.newLine = function(indentKey) {
             var nlWidth = strWidth(config.paddingLeft + config[indentKey]);
-            var nlEmpty = !active || (active.codes.length === 1 && active.codes[0] !== 0);
+            var nlEmpty = !active || (active.codes.length === 1 && active.codes[0] === 0);
             var result = '';
             if (nlWidth === 0 && nlEmpty) {
                 result += ansiEncode([0]);
