@@ -130,8 +130,8 @@ Format.lines = function(str, configuration) {
     format = (function() {
 
         //add initial and terminal format codes
-        formats.unshift({ index: 0, codes: [0] });
-        if (formats[0].index > 0) formats.push({ index: str.length, codes: [0] });
+        if (formats[0] && formats[0].index !== 0) formats.unshift({ index: 0, codes: [0] });
+        if (!formats[0] || formats[0].index > 0) formats.push({ index: str.length, codes: [0] });
 
         var store = formats.slice(0);
         var active = store.shift();
@@ -142,14 +142,17 @@ Format.lines = function(str, configuration) {
             var i;
             var result = '';
             var length = word.length;
+            var transitioned;
+
+            if (next && next.index === position) {
+                active = store.shift();
+                next = store[0];
+                transitioned = true;
+            }
 
             if (isNewLine) {
-                if (strWidth(config.paddingLeft + config.hangingIndent) > 0) {
-                    result += ansiEncode([0]) + config.paddingLeft + config.hangingIndent;
-                }
-                if (active && (active.codes.length !== 1 || active.codes[0] !== '0')) {
-                    result += ansiEncode(active ? active.codes : [0]);
-                }
+                result += format.newLine('hangingIndent');
+                transitioned = false;
             }
 
             if (!config.ansi) {
@@ -157,11 +160,13 @@ Format.lines = function(str, configuration) {
             } else {
                 for (i = 0; i < length; i++) {
                     if (next && next.index === position + i) {
-                        result += ansiEncode(next.codes);
                         active = store.shift();
                         next = store[0];
+                        transitioned = true;
                     }
+                    if (transitioned) result += ansiEncode(active.codes);
                     if (word.length > i) result += word.charAt(i);
+                    transitioned = false;
                 }
             }
 
@@ -171,13 +176,38 @@ Format.lines = function(str, configuration) {
         }
 
         format.adjustPosition = function(amount) {
+            var i;
+            for (i = 0; i < amount; i++) {
+                if (next && next.index === position + i) {
+                    active = store.shift();
+                    next = store[0];
+                }
+            }
             position += amount;
+        };
+
+        format.newLine = function(indentKey) {
+            var nlWidth = strWidth(config.paddingLeft + config[indentKey]);
+            var nlEmpty = !active || (active.codes.length === 1 && active.codes[0] !== 0);
+            var result = '';
+            if (nlWidth === 0 && nlEmpty) {
+                result += ansiEncode([0]);
+            } else if (nlWidth > 0 && nlEmpty) {
+                result += ansiEncode([0]) + config.paddingLeft + config[indentKey];
+            } else if (nlWidth === 0 && !nlEmpty) {
+                result += ansiEncode(active.codes);
+            } else if (nlWidth > 0 && !nlEmpty) {
+                result += ansiEncode([0]) + config.paddingLeft + config[indentKey];
+                result += ansiEncode(active.codes);
+            }
+            return result;
         };
 
         return format;
     })();
 
-    line = ansiEncode([0]) + config.paddingLeft + config.firstLineIndent;
+    //line = ansiEncode([0]) + config.paddingLeft + config.firstLineIndent;
+    line = format.newLine('firstLineIndent');
     while (words.length > 0) {
         word = words.shift();
         wordWidth = strWidth(word);
@@ -190,7 +220,7 @@ Format.lines = function(str, configuration) {
         if (trimmedWidth > width) {
             words.unshift(word.substr(width - hardBreakWidth));
             words.unshift(word.substr(0, width - hardBreakWidth) + config.hardBreak);
-            adjustPosition = -1 * strWidth(config.hardBreak);
+            //adjustPosition = -1 * strWidth(config.hardBreak);
 
         //perform a soft break
         } else if (wordWidth > availableWidth) {
@@ -200,13 +230,14 @@ Format.lines = function(str, configuration) {
                 trimmed = trimmed.replace(/\n$/, '');
             }
 
-            if (config.trimEndOfLine && trimmedWidth <= availableWidth) {
+            if (trimmedWidth <= availableWidth) {
                 line += format(trimmed, false) + ansiEncode([0]);
+                if (config.trimEndOfLine) line = Format.trim(line, false, true);
                 format.adjustPosition(1);
                 line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler);
                 line += config.paddingRight;
                 lines.push(line);
-                line = format('', true);
+                line = '';
             } else {
                 if (config.trimEndOfLine) line = Format.trim(line, false, true);
                 line += ansiEncode([0]);

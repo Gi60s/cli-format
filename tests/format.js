@@ -40,14 +40,292 @@ test('format.transform', function(t) {
     t.end();
 });
 
-test('format.lines', function(t) {
+test('format.lines ansi', function(t) {
+    var actual;
+    var inject;
+    var input;
+    var expected;
+    var name;
+    var run = function(input, inject, config) {
+        return format.lines(ansiInject(input.join(''), inject),
+            Object.assign({
+                ansi: true,
+                availableWidth: 80,
+                firstLineIndent: '',
+                hangingIndent: '',
+                filler: '',
+                hardBreak: '-',
+                paddingLeft: '',
+                paddingMiddle: '   ',
+                paddingRight: '',
+                trimEndOfLine: false,
+                trimStartOfLine: false,
+                width: 80
+            }, config || {})
+        );
+    };
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'No formatting and no filler';
+    inject = {};
+    input = [
+        'This statement is being placed ',
+        'into multiple lines because it ',
+        'hits the width limit of its ',
+        'own accord.'
+    ];
+    expected = [
+        ansiLine('This statement is being placed'),
+        ansiLine('into multiple lines because it'),
+        ansiLine('hits the width limit of its '),
+        ansiLine('own accord.')
+    ];
+    actual = run(input, inject, { width: 30 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'No formatting and with filler';
+    inject = {};
+    input = [
+        'This statement is being placed ',
+        'into multiple lines because it ',
+        'hits the width limit of its ',
+        'own accord.'
+    ];
+    expected = [
+        ansiLine('This statement is being placed'),
+        ansiLine('into multiple lines because it'),
+        ansiLine('hits the width limit of its ') + '  ',
+        ansiLine('own accord.') + '                   '
+    ];
+    actual = run(input, inject, { width: 30, filler: ' ' });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting one word mid line';
+    input = [
+        'Hello, friend Bob'
+    ];
+    inject = { 7: [1], 13: [0] };
+    expected = [
+        ansiLine(input[0], inject)
+    ];
+    actual = run(input, inject, {});
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting two words mid line';
+    input = [
+        'Hello, friend Bob of mine'
+    ];
+    inject = { 7: [1], 17: [0] };
+    expected = [
+        ansiLine(input[0], inject)
+    ];
+    actual = run(input, inject, {});
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting inside one word mid line';
+    input = [
+        'Hello, friend Bob of mine'
+    ];
+    inject = { 8: [1], 11: [0] };
+    expected = [
+        ansiLine(input[0], inject)
+    ];
+    actual = run(input, inject, {});
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting inside one word to inside another word mid line';
+    input = [
+        'Hello, friend Bob of mine'
+    ];
+    inject = { 8: [1], 15: [0] };
+    expected = [
+        ansiLine(input[0], inject)
+    ];
+    actual = run(input, inject, {});
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting to end';
+    input = [
+        'Hello, friend Bob of mine'
+    ];
+    inject = { 21: [1], 25: [0] };
+    expected = [
+        ansiLine(input[0], inject)
+    ];
+    actual = run(input, inject, {});
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting to exactly end of line';
+    input = [
+        '01234 6789 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 6: [1], 10: [0] };
+    expected = [
+        ansiLine(input[0].substring(0, input[0].length - 1), inject),
+        ansiLine(input[1], inject, 10),
+        ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting to space before end of line';
+    input = [
+        '01234 678 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 6: [1], 9: [0] };
+    expected = [
+        ansiLine(input[0], inject),
+        ansiLine(input[1], inject, 10),
+        ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting from line 1 to line 2 without trimmed end';
+    input = [
+        '01234 678 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 6: [1], 12: [0] };
+    expected = [
+        ansiLine(input[0], inject),
+        ansiLine(input[1], Object.assign({}, inject, { 10: [0, 1] }), 10),
+        ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting from line 1 to line 2 with trimmed end';
+    input = [
+        '01234 678 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 6: [1], 12: [0] };
+    expected = [
+        ansiLine(input[0].substr(0, input[0].length - 1), inject),
+        ansiLine(input[1].substr(0, input[0].length - 1), Object.assign({}, inject, { 10: [0, 1] }), 10),
+        ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10, trimEndOfLine: true });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting first word';
+    input = [
+        '01234 678 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 0: [1], 5: [0] };
+    expected = [
+        ansiLine(input[0], inject),
+        ansiLine(input[1], inject, 10),
+        ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting first word on second line';
+    input = [
+        '01234 678 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 10: [1], 12: [0] };
+    expected = [
+        ansiLine(input[0], {}),
+        ansiLine(input[1], inject, 10),
+        ansiLine(input[2], {}, 20)
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting first word with first line indent';
+    input = [
+        '234 6789 ',
+        '01 3456 8 ',
+        '0 23456789'
+    ];
+    inject = { 0: [1], 3: [0] };
+    expected = [
+        '\u001b[0m  ' + ansiLine(input[0].substr(0, input[0].length - 1), inject),
+        ansiLine(input[1], inject, 10),
+        ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10, firstLineIndent: '  ' });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting with hanging line indent';
+    input = [
+        '01234 678 ',
+        '01 345 ',
+        '012345'
+    ];
+    inject = { 13: [1], 16: [0] };
+    expected = [
+        ansiLine(input[0], inject),
+        '\u001b[0m  ' + ansiLine(input[1], inject, 10),
+        '\u001b[0m  ' + ansiLine(input[2], inject, 20)
+    ];
+    actual = run(input, inject, { width: 10, hangingIndent: '  ' });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting last word before new line character';
+    input = [
+        '01 34\n012 45'
+    ];
+    inject = { 3: [1], 5: [0] };
+    expected = [
+        ansiLine(input[0].split('\n')[0], inject),
+        ansiLine(input[0].split('\n')[1], {}),
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    //   _123456789_123456789_123456789_123456789_
+    name = 'Formatting across hard break';
+    input = [
+        '0123456789012 45 7'
+    ];
+    inject = { 0: [1], 13: [0] };
+    expected = [
+        ansiLine(input[0].substr(0, 9) + '-', inject),
+        ansiLine(input[0].substr(9), Object.assign({}, inject, { 10: [0, 1] }), 10)
+    ];
+    actual = run(input, inject, { width: 10 });
+    t.deepEqual(actual, expected, name);
+
+    t.end();
+});
+
+test('format.lines no-ansi', function(t) {
     var input;
     var config = {
-        ansi: true,
+        ansi: false,
         availableWidth: 80,
         firstLineIndent: '',
         hangingIndent: '',
-        filler: ' ',
+        filler: '',
         hardBreak: '-',
         paddingLeft: '',
         paddingMiddle: '   ',
@@ -57,7 +335,6 @@ test('format.lines', function(t) {
         width: 80
     };
     var result;
-
     //   123456789 123456789 123456789X
     input =
         'This statement is being placed ' +
@@ -65,50 +342,25 @@ test('format.lines', function(t) {
         'hits the width limit of its ' +
         'own accord.';
     t.deepEqual(
-        format.lines(input, Object.assign({}, config, { width: 30, filler: '' })),
-        [
-            '\u001b[0mThis statement is being placed\u001b[0m',
-            '\u001b[0minto multiple lines because it\u001b[0m',
-            '\u001b[0mhits the width limit of its\u001b[0m',
-            '\u001b[0mown accord.\u001b[0m'
-        ],
-        'no formatting and no fill'
-    );
-    t.deepEqual(
         format.lines(input, Object.assign({}, config, { width: 30 })),
         [
-            '\u001b[0mThis statement is being placed\u001b[0m',
-            '\u001b[0minto multiple lines because it\u001b[0m',
-            '\u001b[0mhits the width limit of its\u001b[0m   ',
-            '\u001b[0mown accord.\u001b[0m                   '
+            'This statement is being placed',
+            'into multiple lines because it',
+            'hits the width limit of its',
+            'own accord.'
         ],
-        'no formatting and fill with spaces'
+        'no fill'
     );
-
-    //       123456789 123456789 123456789
-    input = 'In this example ' +
-            'there is an\n' +
-            'un\u001b[4mder\u001b[0mlined word';
-    result = format.lines(input, Object.assign({}, config, { width: 20, filler: '' }));
     t.deepEqual(
-        result,
+        format.lines(input, Object.assign({}, config, { width: 30, filler: ' ' })),
         [
-            '\u001b[0mIn this example\u001b[0m',
-            '\u001b[0mthere is an\u001b[0m',
-            '\u001b[0mun\u001b[0;4mder\u001b[0mlined word\u001b[0m'
+            'This statement is being placed',
+            'into multiple lines because it',
+            'hits the width limit of its   ',
+            'own accord.                   '
         ],
-        'formatted word after new line character'
+        'fill with spaces'
     );
-
-
-    input = '1234 \u001b[1m678 901234\u001b[0m 56';
-    t.deepEqual(
-        format.lines(input, Object.assign({}, config, { width: 10, filler: '' })),
-        [
-            '\u001b[0m1234 \u001b[0;1m678\u001b[0m',
-            '\u001b[0;1m901234\u001b[0m 56\u001b[0m'
-        ]
-        , 'formatting split between two lines');
 
     //   123456789 123456789
     input =
@@ -116,7 +368,7 @@ test('format.lines', function(t) {
         'see a ' +
         'superlongwordwithoutspaces';
     t.deepEqual(
-        format.lines(input, Object.assign({}, config, { width: 10, filler: '', ansi: false })),
+        format.lines(input, Object.assign({}, config, { width: 10 })),
         [
             'Here you',
             'see a',
@@ -129,7 +381,7 @@ test('format.lines', function(t) {
 
     input = 'Two new lines\n\nSide by side';
     t.deepEqual(
-        format.lines(input, { width: 80, filler: '', ansi: false }),
+        format.lines(input, Object.assign({}, config, { width: 80, filler: '' })),
         [
             'Two new lines',
             '',
@@ -140,7 +392,7 @@ test('format.lines', function(t) {
 
     input = 'One word per line\njust\nlike\nthis';
     t.deepEqual(
-        format.lines(input, { width: 80, filler: '', ansi: false }),
+        format.lines(input, Object.assign({}, config, { width: 80 })),
         [
             'One word per line',
             'just',
@@ -152,7 +404,7 @@ test('format.lines', function(t) {
 
     input = 'Space before \nnew line';
     t.deepEqual(
-        format.lines(input, { width: 80, filler: '', ansi: false }),
+        format.lines(input, Object.assign({}, config, { width: 80 })),
         [
             'Space before',
             'new line'
@@ -163,7 +415,7 @@ test('format.lines', function(t) {
     //       123456789 123456789 123456789
     input = 'New line after\nsoft wrap';
     t.deepEqual(
-        format.lines(input, { width: 12, filler: '', ansi: false }),
+        format.lines(input, Object.assign({}, config, { width: 12 })),
         [
             'New line',
             'after',
@@ -174,7 +426,7 @@ test('format.lines', function(t) {
 
     //       123456789 12345
     input = 'Dash break-line';
-    var r = format.lines(input, { width: 11, filler: '', ansi: false });
+    var r = format.lines(input, Object.assign({}, config, { width: 11 }));
     t.deepEqual(
         r,
         [
@@ -393,3 +645,58 @@ test('format.columns', function(t) {
 
     t.end();
 });
+
+
+
+function ansiAddZero(array) {
+    if (array[0] !== 0) array.unshift(0);
+}
+
+function ansiInject(input, map, offset) {
+    var i;
+    var index;
+    var result = '';
+    if (typeof offset == 'undefined') offset = 0;
+    map = map ? Object.assign({}, map) : {};
+    for (i = 0; i < input.length; i++) {
+        index = offset + i;
+        if (map[index]) {
+            ansiAddZero(map[index]);
+            result += '\u001b[' + map[index].join(';') + 'm';
+        }
+        result += input[i];
+    }
+
+    index = offset + input.length;
+    if (map[index]) {
+        ansiAddZero(map[index]);
+        result += '\u001b[' + map[index].join(';') + 'm';
+    }
+    return result;
+}
+
+function ansiLine(input, map, offset) {
+    if (typeof offset == 'undefined') offset = 0;
+    map = map ? Object.assign({}, map) : {};
+    if (!map[offset]) map[offset] = [0];
+    ansiAddZero(map[offset]);
+    if (!map[offset + input.length]) map[offset + input.length] = [0];
+    ansiAddZero(map[offset + input.length]);
+    return ansiInject(input, map, offset);
+}
+
+/*
+function ansiLine(input, map, offset) {
+    var i;
+    var indexes = Object.keys(map ? Object.assign({}, map) : {}).map(parseInt);
+    var last;
+
+    if (typeof offset == 'undefined') offset = 0;
+
+    last = indexes[indexes.length - 1] || 0;
+    if (last < offset + input.length) last = offset + input.length;
+
+    for (i = 0; i < last; i++) {
+
+    }
+}*/

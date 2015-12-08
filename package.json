@@ -1,14 +1,13 @@
 {
   "name": "cli-format",
-  "version": "1.0.13",
+  "version": "1.1.0",
   "description": "A command line formatting that makes it easy to manage word wrapping, indents, padding, columns, and more. Also works with ansi-encoding libraries chalk, colors, and others.",
   "main": "bin/index.js",
   "directories": {
     "test": "tests"
   },
   "dependencies": {
-    "string-width": "^1.0.1",
-    "object-assign-deep": "^0.0.4"
+    "string-width": "^1.0.1"
   },
   "devDependencies": {
     "tape": "^4.2.2",
