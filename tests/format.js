@@ -321,3 +321,75 @@ test('format.trim', function(t) {
 
     t.end();
 });
+
+test('format.columns', function(t) {
+    var col1;
+    var col2;
+    var config;
+
+    //      123456789 12345
+    col1 = 'Dash break-line';
+    config = { width: [ 11, 10 ], filler: '.', paddingMiddle: '|', ansi: false };
+    t.deepEqual(
+        format.columns(col1, col1, config),
+        'Dash break-|Dash......\n' +
+        'line.......|break-line\n',
+        'Dash as last character in line 1'
+    );
+
+    config = { width: [ 12, 10 ], filler: '.', paddingMiddle: '|', ansi: false };
+    t.deepEqual(
+        format.columns(col1, col1, config),
+        'Dash break-.|Dash......\n' +
+        'line........|break-line\n',
+        'Dash as last character in line 2'
+    );
+
+    config = { width: [ 12, 10 ], filler: '.', paddingLeft: '>', paddingMiddle: '|', paddingRight: '<', ansi: false };
+    t.deepEqual(
+        format.columns(col1, col1, config),
+        '>Dash break-.|Dash......<\n' +
+        '>line........|break-line<\n',
+        'Modified left and right padding'
+    );
+
+    config = { width: null, filler: '.', paddingLeft: '>', paddingMiddle: '|', paddingRight: '<', ansi: false, availableWidth: 24 };
+    t.deepEqual(
+        format.columns(col1, col1, config),
+        '>Dash break-|Dash......<\n' +
+        '>line.......|break-line<\n',
+        'Auto width with padding left and right'
+    );
+
+    config = { width: null, filler: '.', paddingLeft: '>', paddingMiddle: '|', paddingRight: '<', ansi: false, availableWidth: 35 };
+    t.deepEqual(
+        format.columns(col1, col1, col1, config),
+        '>Dash break-|Dash......|Dash......<\n' +
+        '>line.......|break-line|break-line<\n',
+        'Auto width, 3 columns, with padding left and right'
+    );
+
+    col2 = format('Dash break-line', { width: 13, paddingLeft: '/', paddingRight: '\\', ansi: false, filler: '.' });
+    config = { width: null, filler: '.', paddingLeft: '>', paddingMiddle: '|', paddingRight: '<', ansi: false, availableWidth: 27 };
+    t.deepEqual(
+        format.columns(col2, col1, config),
+    //   123456789-123456789-123456789
+        '>/Dash break-\\|Dash break-<\n' +
+        '>/line.......\\|line.......<\n',
+        'Custom column and auto width, with padding left and right'
+    );
+
+    col2 = format('Dash break-line', { width: 13, paddingLeft: '/', paddingRight: '\\', ansi: false, filler: '.' });
+    config = { width: null, filler: '.', paddingLeft: '>', paddingMiddle: '|', paddingRight: '<', ansi: false, availableWidth: 24 };
+    t.deepEqual(
+        format.columns(col2, col1, config),
+    ///  123456789-1234-56789-1234
+        '>/Dash break-\\|Dash....<\n' +
+        '>/line.......\\|break-..<\n' +
+        '>/...........\\|line....<\n',
+        'Auto width, 3 columns, with padding left and right'
+    );
+
+
+    t.end();
+});
