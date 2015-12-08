@@ -52,55 +52,63 @@ To install with npm
     
 ### Column Wrapping
 
-    <pre>var str = 'T' + colors.underline('he') +
-        ' quick brown fox jumped over the ' +
-        colors.bold('lazy dog') +
-        ' and the cow said moo to you too.';<br>
-    var config = {
-        width: [20, 20, null],
-        paddingLeft: '&gt;',
-        paddingRight: '&lt;',
-        paddingMiddle: ' | ',
-        hangingIndent: '...',
-        filler: '.'
-    };
-        
-    var result = format.columns(str, str, str, config);
-    console.log(result);<br>
-    /*
-    &gt;T<u>he</u> quick brown fox | T<u>he</u> quick brown.. | T<u>he</u> quick brown fox jumped over the.&lt;
-    &gt;...jumped over the. | ...fox jumped.... | ...<strong>lazy dog</strong> and the cow said moo to.&lt;
-    &gt;...<strong>lazy dog</strong> and the | ...over the <strong>lazy</strong>. | ...you too..........................&lt;
-    &gt;...cow said moo to. | ...<strong>dog</strong> and the... | ....................................&lt;
-    &gt;...you too......... | ...cow said moo.. | ....................................&lt;
-    &gt;................... | ...to you too.... | ....................................&lt;
-    */</pre>
+<pre>var str = 'T' + colors.underline('he') +
+  	' quick brown fox jumped over the ' +
+    colors.bold('lazy dog') +
+    ' and the cow said moo to you too.';<br>
+var config = {
+    width: [20, 20, null],
+    paddingLeft: '&gt;',
+    paddingRight: '&lt;',
+    paddingMiddle: ' | ',
+    hangingIndent: '...',
+    filler: '.'
+};
+    
+var result = format.columns(str, str, str, config);
+console.log(result);<br>
+/*
+&gt;T<u>he</u> quick brown fox | T<u>he</u> quick brown.. | T<u>he</u> quick brown fox jumped over the.&lt;
+&gt;...jumped over the. | ...fox jumped.... | ...<strong>lazy dog</strong> and the cow said moo to.&lt;
+&gt;...<strong>lazy dog</strong> and the | ...over the <strong>lazy</strong>. | ...you too..........................&lt;
+&gt;...cow said moo to. | ...<strong>dog</strong> and the... | ....................................&lt;
+&gt;...you too......... | ...cow said moo.. | ....................................&lt;
+&gt;................... | ...to you too.... | ....................................&lt;
+*/</pre>
 
 ### Advanced Column Wrapping
 
-    <pre>var str = 'T' + colors.underline('he') +
-        ' quick brown fox jumped over the ' +
-        colors.bold('lazy dog') +
-        ' and the cow said moo to you too.';<br>
-    var config = {
-        width: [20, 20, null],
-        paddingLeft: '&gt;',
-        paddingRight: '&lt;',
-        paddingMiddle: ' | ',
-        hangingIndent: '...',
-        filler: '.'
-    };
-        
-    var result = format.columns(str, str, str, config);
-    console.log(result);<br>
-    /*
-    &gt;T<u>he</u> quick brown fox | T<u>he</u> quick brown.. | T<u>he</u> quick brown fox jumped over the.&lt;
-    &gt;...jumped over the. | ...fox jumped.... | ...<strong>lazy dog</strong> and the cow said moo to.&lt;
-    &gt;...<strong>lazy dog</strong> and the | ...over the <strong>lazy</strong>. | ...you too..........................&lt;
-    &gt;...cow said moo to. | ...<strong>dog</strong> and the... | ....................................&lt;
-    &gt;...you too......... | ...cow said moo.. | ....................................&lt;
-    &gt;................... | ...to you too.... | ....................................&lt;
-    */</pre>
+<pre>var str = 'T' + colors.underline('he') +
+     ' quick brown fox jumped over the ' +
+     colors.bold('lazy dog') +
+     ' and the cow said moo to you too.';
+ 
+ //custom column
+ var column1 = format(str, {
+     ansi: true,
+     width: 20,
+     paddingLeft: '/',
+     paddingRight: '_'
+ });
+ 
+ //default config for all columns without a custom config
+ var config = {
+     ansi: false,
+     paddingLeft: '&gt;',
+     paddingRight: '&lt;',
+     paddingMiddle: ' | ',
+     hangingIndent: '...',
+     filler: '.'
+ };
+ 
+ var result = format.columns(column1, str, config);
+ console.log(result);<br>
+/*
+&gt;/T<u>he</u> quick brown fox _ | The quick brown fox jumped over the lazy dog and the.&lt;
+&gt;/jumped over the <strong>lazy</strong>_ | ...cow said moo to you too...........................&lt;
+&gt;/<strong>dog</strong> and the cow said_ | .....................................................&lt;
+&gt;/moo to you too.     _ | .....................................................&lt;
+*/</pre>
     
 	
 

@@ -23,7 +23,6 @@ Format.columns = function(configuration) {
     var config;
     var columns = [];
     var lineCount = 0;
-    var row;
     var rowIndex;
     var strings;
     var strWidth = Format.stringWidth;
@@ -31,7 +30,9 @@ Format.columns = function(configuration) {
     var result = '';
 
     //get configuration and strings to process
-    config = Object.assign({}, formatConfig.config, typeof args[args.length - 1] === 'object' ? args.pop() : {});
+    config = typeof args[args.length - 1] === 'object' ? args.pop() : {};
+    if (!config.hasOwnProperty('width')) config.width = 'null';
+    config = Object.assign({}, formatConfig.config, config);
     strings = args;
 
     //determine widths to use
@@ -94,6 +95,7 @@ Format.lines = function(str, configuration) {
     var adjustPosition = 0;
     var availableWidth;
     var endOfLine;
+    var firstWord = true;
     var format;
     var line;
     var lineWidth;
@@ -141,14 +143,18 @@ Format.lines = function(str, configuration) {
             var result = '';
             var length = word.length;
 
+            if (isNewLine) {
+                if (strWidth(config.paddingLeft + config.hangingIndent) > 0) {
+                    result += ansiEncode([0]) + config.paddingLeft + config.hangingIndent;
+                }
+                if (active && (active.codes.length !== 1 || active.codes[0] !== '0')) {
+                    result += ansiEncode(active ? active.codes : [0]);
+                }
+            }
+
             if (!config.ansi) {
-                if (isNewLine) result += config.paddingLeft + config.hangingIndent;
                 result += word;
             } else {
-                if (isNewLine) {
-                    result += ansiEncode(active ? active.codes : [0]) +
-                        config.paddingLeft + config.hangingIndent;
-                }
                 for (i = 0; i < length; i++) {
                     if (next && next.index === position + i) {
                         result += ansiEncode(next.codes);
@@ -225,7 +231,7 @@ Format.lines = function(str, configuration) {
 
         //add to the current line
         } else {
-            line += format(word, line.length === 0);
+            line += format(word, !firstWord && line.length === 0);
 
         }
 
@@ -234,6 +240,8 @@ Format.lines = function(str, configuration) {
             format.adjustPosition(adjustPosition);
             adjustPosition = 0;
         }
+
+        firstWord = false;
     }
 
     if (line) {
@@ -409,8 +417,9 @@ function analyzeWidth(strings, config) {
 
     //if input is a single number then set all widths to the number specified
     if (typeof widths === 'number' && !isNaN(widths)) {
+        i = widths;
         widths = [];
-        for (i = 0; i < columnCount; i++) widths.push(widths);
+        for (i = 0; i < columnCount; i++) widths.push(i);
     }
 
     //if widths isn't an array then make it into one
