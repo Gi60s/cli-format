@@ -9,7 +9,7 @@ exports.breaks = [
 ];
 
 exports.config = {
-    ansi: true,                                     //set to false to remove ansi formatting
+    ansi: !!process.stdout.isTTY,                   //set to false to remove ansi formatting
     availableWidth: process.stdout.columns || 80,   //the amount of width the console provides
     filler: ' ',                                    //content to add to the end of the line
     firstLineIndent: '',                            //content to add to the start of first line
