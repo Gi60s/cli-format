@@ -295,6 +295,7 @@ Format.separate = function(str) {
     var map = getCodeMap();
     var match;
     var o;
+    var prevIndex = -1;
     var result = '';
     var rx;
 
@@ -308,11 +309,21 @@ Format.separate = function(str) {
             result += str.substr(0, match.index);
             str = str.substr(match.index + match[0].length);
             activeCodes = normalize(activeCodes, match[1].split(';'), map);
-            o = {
-                index: result.length,
-                codes: activeCodes.slice(0).map(function(v) { return parseInt(v); })
-            };
-            format.push(o);
+            if (prevIndex === result.length) {
+                o = format[format.length - 1];
+                o.codes = o.codes.concat(activeCodes.slice(0).map(function (v) {
+                    return parseInt(v);
+                }));
+            } else {
+                o = {
+                    index: result.length,
+                    codes: activeCodes.slice(0).map(function (v) {
+                        return parseInt(v);
+                    })
+                };
+                format.push(o);
+            }
+            prevIndex = result.length;
         } else {
             result += str;
             str = '';
@@ -520,10 +531,6 @@ function getGroupCodes(group) {
     return result;
 }
 
-function getSpaces(count) {
-    return getFiller(count, ' ');
-}
-
 function getFiller(count, filler) {
     var result = '';
     if (count < 0) count = 0;
@@ -564,14 +571,4 @@ function normalize(active, codes, map) {
     });
 
     return active;
-}
-
-function normalizeConfig(config) {
-    return Object.assign({
-        firstLineIndent: 0,
-        hangingIndent: 0,
-        paddingLeft: '  ',
-        paddingRight: '  ',
-        width: process.stdout.columns || 80,
-    }, config || {});
 }

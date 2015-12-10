@@ -1,6 +1,8 @@
 "use strict";
 var ansi                = require('../bin/ansi');
 var config              = require('../bin/format-config');
+var chalk               = require('chalk');
+var colors              = require('colors/safe');
 var format              = require('../bin/format');
 var test                = require('tape');
 
@@ -530,6 +532,81 @@ test('format.separate', function(t) {
             });
         }
     });
+
+    t.end();
+});
+
+test('format.seperate chalk', function(t) {
+    var actual;
+    var expected;
+    var input;
+
+    chalk.enabled = true;
+
+    input = chalk.bold('Hello');
+    expected = [
+        {
+            codes: [1],
+            index: 0
+        },
+        {
+            codes: [1, 22],
+            index: 5
+        }
+    ];
+    actual = format.separate(input).format;
+    t.deepEqual(actual, expected, 'bold');
+
+    input = chalk.underline.bold('Hello');
+    expected = [
+        {
+            codes: [4, 1],
+            index: 0
+        },
+        {
+            codes: [4, 1, 22, 24],
+            index: 5
+        }
+    ];
+    actual = format.separate(input).format;
+    t.deepEqual(actual, expected, 'bold underline');
+
+    t.end();
+});
+
+test('format.seperate colors', function(t) {
+    var actual;
+    var expected;
+    var input;
+    colors.enabled = true;
+
+    input = colors.bold('Hello');
+    expected = [
+        {
+            codes: [1],
+            index: 0
+        },
+        {
+            codes: [1, 22],
+            index: 5
+        }
+    ];
+    actual = format.separate(input).format;
+    t.deepEqual(actual, expected, 'bold');
+
+    input = colors.underline.bold('Hello');
+    expected = [
+        {
+            codes: [4, 4, 1],
+            index: 0
+        },
+        {
+            codes: [4, 1, 22, 4, 1, 22, 24],
+            index: 5
+        }
+    ];
+    actual = format.separate(input).format;
+    t.deepEqual(actual, expected, 'bold underline');
 
     t.end();
 });
