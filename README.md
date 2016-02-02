@@ -10,160 +10,235 @@ To install with npm
     
 ## Features
 
- 1. Word wrapping at any width you choose
- 2. Line output (words in an array)
- 3. Column output
- 4. Ansi formatting (on or off)
+ 1. Word wrapping
+ 2. Lines output
+ 3. Columns output
+ 4. Ansi support both [chalk](https://www.npmjs.com/package/chalk) and [colors](https://www.npmjs.com/package/colors)
  5. First line indent
  6. Hanging indent
- 7. Trim start or end of line independently
  8. Automatic available width detection
  9. Hard breaks for long words
  10. Reusable utilities
     
 ## Example Usage
 
-### Simple Word Wrap
+### Word Wrap
 
-    var cliFormat = require('cli-format');
-    var result = cliFormat.wrap('This line will automatically wrap at column 20', { width: 20 });
-    console.log(result);
-    
-    /*
-    This line will
-    automatically wrap at
-    column 20
-    */
+```js
+var cliFormat = require('cli-format');
+var result = cliFormat.wrap('This line will automatically wrap at column 20', { width: 20 });
+console.log(result);
+
+/*
+This line will
+automatically wrap at
+column 20
+*/
+```
     
 ### Lines for Word Wrap
 
-    var cliFormat = require('cli-format');
-    var config = {
-        width: 20,
-        filler: false,
-        ansi: false
-    };
-    var result = cliFormat.lines('This line will automatically wrap at column 20', config);
-    console.log(result);
-    
-    /*
-    [ "This line will", "automatically wrap at", "column 20" ]
-    */
+```js
+var cliFormat = require('cli-format');
+var config = {
+    width: 20,
+    filler: false,
+    ansi: false
+};
+var result = cliFormat.lines('This line will automatically wrap at column 20', config);
+console.log(result);
+
+// [ "This line will", "automatically wrap at", "column 20" ]
+```
     
 ### Column Wrapping
 
-<pre>var str = 'T' + colors.underline('he') +
-  	' quick brown fox jumped over the ' +
-    colors.bold('lazy dog') +
-    ' and the cow said moo to you too.';<br>
-var config = {
-    width: [20, 20, null],
-    paddingLeft: '&gt;',
-    paddingRight: '&lt;',
-    paddingMiddle: ' | ',
-    hangingIndent: '...',
+```js
+var cliFormat = require('cli-format');
+
+var col1 = 'This column uses defaults';
+var col2 = {
+    content: 'This column uses a custom configuration.',
+    width: 15,
     filler: '.'
 };
-    
-var result = format.columns(str, str, str, config);
-console.log(result);<br>
-/*
-&gt;T<u>he</u> quick brown fox | T<u>he</u> quick brown.. | T<u>he</u> quick brown fox jumped over the.&lt;
-&gt;...jumped over the. | ...fox jumped.... | ...<strong>lazy dog</strong> and the cow said moo to.&lt;
-&gt;...<strong>lazy dog</strong> and the | ...over the <strong>lazy</strong>. | ...you too..........................&lt;
-&gt;...cow said moo to. | ...<strong>dog</strong> and the... | ....................................&lt;
-&gt;...you too......... | ...cow said moo.. | ....................................&lt;
-&gt;................... | ...to you too.... | ....................................&lt;
-*/</pre>
 
-### Advanced Column Wrapping
+var config = { width: 40, paddingMiddle: ' | ' };
 
-<pre>var str = 'T' + colors.underline('he') +
-     ' quick brown fox jumped over the ' +
-     colors.bold('lazy dog') +
-     ' and the cow said moo to you too.';
- 
- //custom column
- var column1 = format(str, {
-     ansi: true,
-     width: 20,
-     paddingLeft: '/',
-     paddingRight: '_'
- });
- 
- //default config for all columns without a custom config
- var config = {
-     ansi: false,
-     paddingLeft: '&gt;',
-     paddingRight: '&lt;',
-     paddingMiddle: ' | ',
-     hangingIndent: '...',
-     filler: '.'
- };
- 
- var result = format.columns(column1, str, config);
- console.log(result);<br>
+var result = cliFormat.columns.wrap([col1, col2], config);
+console.log(result);
+
 /*
-&gt;/T<u>he</u> quick brown fox _ | The quick brown fox jumped over the lazy dog and the.&lt;
-&gt;/jumped over the <strong>lazy</strong>_ | ...cow said moo to you too...........................&lt;
-&gt;/<strong>dog</strong> and the cow said_ | .....................................................&lt;
-&gt;/moo to you too.     _ | .....................................................&lt;
-*/</pre>
+This column uses      | This column....
+defaults              | uses a custom..
+                      | configuration..
+*/
+```
+
+### Text Justification
+
+```js
+var cliFormat = require('cli-format');
+
+var input = 'The quick brown fox jumped over the lazy ' +
+    'dog and the cow said moo to you too.';
     
-	
+var result = cliFormat.wrap(input, { width: 20, justify: true });
+console.log(result);
+
+/*
+The quick brown fox
+jumped   over   the
+lazy  dog  and  the
+cow said moo to you
+too.
+*/
+```
 
 ## Formatting Options
 
-The functions `.wrap()`, `.lines()`, and `.columns()` each use a configuration object to define how the output should be provided. Below you'll see what configuration options exist.
+The functions `.wrap()`, `.lines()`, `.columns.wrap()`, and `.columns.lines()` each use a configuration object to define how the output should be formatted. Below is an explanation of each option.
 
-| Option            | Default               | Description
-| ----------------- | --------------------- | ---
-| ansi              | true                  | Use true to keep ansi-encoding in content, false to strip ansi-encoding.
-| availableWidth    | (console width or 80) | The width available for columns to use. This value is used if one or more columns do not have a width specified.
-| filler            | (space)               | A repeatable sequence of characters to use from the last word in a line until the end of the line. This is a good way to have leader dots (...) at the end of your lines.
-| firstLineIndent   | (empty string)        | A string to put at the beginning of the first line of your content.
-| hangingIndent     | (empty string)        | A string to put at the beginning of all except the first line of your content.
-| hardBreak         | -                     | A string to use to break a line that is too long for a single line onto multiple lines.
-| paddingLeft       | (empty string)        | A string to put at the beginning of every line. 
-| paddingMiddle     | (3 spaces)            | A string to place between columns.
-| paddingRight      | (empty string)        | A string to put at the ending of every line.
-| trimEndOfLine     | true                  | Use true to trim spaces off the end of each line or use false to keep spaces.
-| trimStartOfLine   | false                 | Use true to trim spaces off the beginning of each line or use false to keep spaces.
-| width             | (console width or 80) | The width to limit wrapped content (also individual columns) to. If using this for columns then use an array of numbers to specify the width of each column. If an item in the array is not a number then its column size will automatically be calculated based on remaining available width.
+- **ansi** - Use true to keep ansi-encoding in content, false to strip ansi-encoding. Defaults to `true`.
+- **filler** - A repeatable sequence of characters to use from the last word in a line until the end of the line. This is a good way to have leader dots (…) at the end of your lines. Defaults to an empty string.
+- **firstLineIndent** - A string to put at the beginning of the first line of your content. Defaults to an empty string.
+- **justify** - Set to true to justify wrapped text. Defaults to `false`.
+- **hangingIndent** - A string to put at the beginning of all except the first line of your content. Defaults to an empty string.
+- **paddingLeft** - A string to put at the beginning of every line, before the *firstLineIndent* and the *hangingIndent*.
+- **paddingMiddle** - A string to place between columns. This option will only be recognized as a column configuration option. Defaults to three spaces.
+- **paddingRight** - A string to put at the ending of every line. Defaults to an empty string.
+- **trimEndOfLine** - Use true to trim spaces off the end of each line or use false to keep spaces. Defaults to `true`.
+- **trimStartOfLine** - Use true to trim spaces off the beginning of each line or use false to keep spaces. Defaults to `false`.
+- **width** - The total usable width for the content. Defaults to the available width for the console.
 
 ## API
 
 The following methods and properties are exposed using `require('cli-format')`:
 
-| Method / Property | Signature                             | Returns   | Description
-| ----------------- | ------------------------------------- | --------- | ---
-| ansi              |                                       | object    | See the **ansi** section below
-| config            |                                       | object    | See the **config** section below
-| columns           | .columns(content..., configuration)   | string    | Take one or more content strings and convert them into a column layout string. The configuration width should be an array of numbers (or non-numbers for automatic width fields).
-| lines             | .lines(content, configuration)        | string[]  | Take a content string and convert it into an array of strings that contain enough content for the width provided through the configuration. 
-| transform         | .transform(content, transformMap)     | string    | Run a string through the transform configuration map.
-| words             | .words(content)                       | object[]  | Take a string and break it up into an array of words and also get ansi-formatting for each change in formatting. 
-| wrap              | .wrap(content, configuration)         | string    | Take a content string and convert it into a wrapped string.
-| separate          | .separate(content)                    | object    | Get an object that has the content without ansi formatting and an object that defines ansi-formatting changes and where they occur.
-| stringWidth       | .stringWidth(content)                 | number    | Determine the width (not the length) of a string. Some characters have more or less than a width of one.
-| trim              | .trim(content, start, end)            | string    | Trim spaces off the front and/or end of the content while preserving ansi-encoded formatting. Start and end can be either a boolean or a non-negative number that represents how much to trim.
+#### ansi.adjust ( previous, adjustment )
 
-### Ansi
+Convert from one ansi code array to another, overwriting codes where applicable. For example a code will be overwritten by codes in the same group. If the code for red text is specified followed by the code for blue text then the red text code will be removed leaving the blue text code.
 
-The `require('cli-format').ansi` object has the following properties that may be of use to you. Generally you won't need to change these properties but you can if you want different behavior than what is default.
+**Parameters**
 
-| Property          | Description
-| ----------------- | ---
-| escape            | An array of characters that are used to identify ansi-escape sequences.
-| codes             | A map of ansi-escape codes and their groupings.
+- **previous** - The array of codes to adjust from.
+- **adjustment** - The array of codes to adjust to.
 
-### Config
+**Returns** an array of numbers.
 
-The `require('cli-format').config` object has the following properties that may be of use to you. Generally you won't need to change these properties but you can if you want different behavior than what is default.
+#### ansi.clean ( codes )
 
-| Property          | Description
-| ----------------- | ---
-| breaks            | An array of characters that are used to identify word breaks.
-| config            | An object that defines the default configuration for format functions.
-| lengths           | An object map that defines how wide a character is. This works in conjunction with the string-width module.
-| transform         | A map that controls how the transform function executes. The key is a regular expression string that will be found to replace with the value assigned to the key.
+Take an array of codes and remove any codes that are overwritten by later codes. Also, if a default code is applied when default is already set then it is not included.
+
+**Parameters**
+
+- **codes** - The ansi codes to process.
+
+**Returns** an array of numbers.
+
+#### ansi.clearDefaults ( codes )
+
+Take an array of codes and remove any codes that are default codes.
+
+**Parameters**
+
+- **codes** - The ansi codes to process.
+
+**Returns** an array of numbers.
+
+#### ansi.id ( code )
+
+Get the code group and name from the code number.
+
+**Parameters**
+
+- **codes** - The ansi codes.
+
+**Returns** an object with the following format:
+```js
+{ fullName: 'group.name', group: 'group', name: 'name' }
+```
+
+For example, `cliFormat.ansi.id(1)` will return `{ fullName: 'weight.bold', group: 'weight', name: 'bold' }`.
+
+### columns.lines ( columns [, configuration ] )
+
+Wrap contents into columns and get back the wrapped lines.
+
+**Parameters**
+
+- **columns** - This is an array of string or object values. If an array item is a *string* then the string will be used to specify the content for the column and all other configuration options for that column will be inherited from the `defaultValues.config` options. If an array item is an *object* then the object must have a `content` property that specifies the content for the column. Other configuration options can also be placed here and will be merged with the `defaultValues.config` options.
+- **configuration** - This configuration should be used to specify the total `width` of the columns area as well as what the `paddingMiddle` value should be. Any other options specified here will be merged into the options for each column provided in the first parameter.
+
+**Returns** an array of strings.
+
+### columns.wrap ( columns [, configuration ] )
+
+Wrap contents into columns and get back a string with `\n` at the end of each lines. This function is a wrapper for `.columns.lines()`.
+
+### defaultValues
+
+This property contains default configuration instructions. If you'd like to change the default behavior of `cli-format` then you'll want to modify the proeprties on this object. Changes here will affect all future format function calls. Also, there are other configuration settings that are not documented here because you'll probably not need to alter those.
+
+#### defaultValue.config
+
+This object map has the default configuration values for `.wrap()` and `.lines()`.
+
+#### defaultValue.columnConfig
+
+This object map has the default configuration values for `.columns.wrap()` and `.columns.lines()`.
+
+### justify ( content, width )
+
+Specify a string with expand with spaces to meet the justified width. This function does not handle wrapping, but the `.wrap()` and `.lines()` functions do have an option to justify lines.
+
+**Parameters**
+
+- **content** - The text to justify. The width of the text must be less than the width specified.
+- **width** - The width to expand the content to.
+
+**Returns** a string.
+
+### lines ( content [, configuration ] )
+
+Wrap content into lines.
+
+**Parameters**
+
+- **content** - The text to wrap.
+- **configuration** - The configuration instructions to apply to the wrap. The value provided by this parameter will be merged with the `defaultValues.config` options.
+
+**Returns** an array of strings.
+
+### separate ( content )
+
+Take a string and seperate the content from ansi formatting. This function will return both the ansi free string as well as an object mapping the positions and codes for the ansi that was removed.
+
+**Parameters**
+
+- **content** - The text to separate from the ansi code.
+
+**Returns** an object with the content `value` and ansi encoding `format` data as properties. The `format` property is an array of objects. Each of these objects lists the index from where the ansi encoding was removed as well as the ansi codes that were specified there.
+
+### transform ( content, configuration )
+
+Take a string and replace character sequences with new sequences.
+
+**Parameters**
+
+- **content** - The text to transform.
+- **configuration** - An object that maps values that are into what they should be. For example, `{ '\t': '  '` will replace tab characters with two spaces. This configuration is merged with the `defaultValues.transform` configuration.
+
+**Returns** a string.
+
+### trim ( content, start, end )
+
+Trim spaces off of the start and/or end of a string while maintaining ansi formatting that would otherwise have been trimmed off.
+
+**Parameters**
+
+- **content** - The text to trim.
+- **start** - Set to `true` to trim the start of the string, or specify a number to specify up to how many spaces to trim.
+- **end** - Set to `true` to trim the end of the string, or specify a number to specify up to how many spaces to trim.
+
+**Returns** a string.

@@ -3,80 +3,124 @@ const ansi                  = require('./ansi');
 const formatConfig          = require('./format-config');
 const stringWidth           = require('string-width');
 
+var Format = {};
+
 module.exports = Format;
 
+Format.columns = {};
 
-function Format(str, configuration) {
-    var config = Object.assign({}, formatConfig.config, configuration);
+Format.columns.lines = function(columns, configuration) {
+    var columnsLines;
+    var columnsWithoutAssignedWidth = [];
+    var config = Object.assign({}, formatConfig.columnConfig, configuration || {});
+    var defaultColumnConfig;
+    var i;
+    var line;
+    var middlePaddingWidth = Format.width(config.paddingMiddle);
+    var result = [];
+    var totalLines;
+    var unclaimedWidth;
+    var widthPerColumn;
+    var widthPerColumnModulus;
 
-    //force instance creation
-    if (!(this instanceof Format)) return new Format(str, config);
+    // build the default column configuration
+    defaultColumnConfig = Object.assign({}, formatConfig.config);
+    delete defaultColumnConfig.width;
 
-    this.configuration = config;
-    this.lines = Format.lines(str, config);
-    this.wrap = this.lines.join('\n');
-
-}
-
-Format.columns = function(configuration) {
-    var args = Array.prototype.slice.call(arguments, 0);
-    var config;
-    var columns = [];
-    var lineCount = 0;
-    var rowIndex;
-    var strings;
-    var strWidth = Format.stringWidth;
-    var widths;
-    var result = '';
-
-    //get configuration and strings to process
-    config = typeof args[args.length - 1] === 'object' ? args.pop() : {};
-    if (!config.hasOwnProperty('width')) config.width = 'null';
-    config = Object.assign({}, formatConfig.config, config);
-    strings = args;
-
-    //determine widths to use
-    widths = analyzeWidth(strings, config);
-
-    //build lines for each column
-    strings.forEach(function(str, colIndex) {
-        var colConfig;
-        var lines;
-        var width = widths[colIndex];
-
-        //get lines for column
-        if (str instanceof Format) {
-            colConfig = str.configuration;
-            lines = str.lines;
+    // turn all columns into objects
+    columns = columns.map(function(config) {
+        var result;
+        if (typeof config === 'string') {
+            result = { content: config };
+        } else if (!config || typeof config !== 'object') {
+            result = { content: '' };
         } else {
-            colConfig = Object.assign({}, config, { paddingLeft: '', paddingRight: '', width: width });
-            lines = Format.lines(str, colConfig);
+            result = config;
         }
-
-        //store lines and number of lines
-        if (lineCount < lines.length) lineCount = lines.length;
-        columns[colIndex] = {
-            config: colConfig,
-            lines: lines
-        };
+        result = Object.assign({}, defaultColumnConfig, result);
+        if (!result.filler) result.filler = ' ';
+        return result;
     });
 
-    //iterate through rows and columns to build the string
-    for (rowIndex = 0; rowIndex < lineCount; rowIndex++) {
-        columns.forEach(function(column, colIndex) {
-            var filler = strings[colIndex] instanceof Format ? strings[colIndex].configuration.filler : config.filler;
-            var line = column.lines[rowIndex] || '';
-            var paddingWidth = strWidth(column.config.paddingLeft + column.config.paddingRight);
-            result += colIndex === 0 ? config.paddingLeft : config.paddingMiddle;
-            if (line.length === 0) result += column.config.paddingLeft;
-            result += line + getFiller(widths[colIndex] - strWidth(line) - paddingWidth, filler);
-            if (line.length === 0) result += column.config.paddingRight;
-            if (colIndex === columns.length - 1) result += config.paddingRight;
+    // determine the amount of unclaimed width
+    unclaimedWidth = columns.reduce(function(value, config, index) {
+        if (typeof config.width === 'number') return value - config.width;
+        columnsWithoutAssignedWidth.push(index);
+        return value;
+    }, config.width - middlePaddingWidth * (columns.length - 1));
+
+    // distribute unclaimed width
+    if (columnsWithoutAssignedWidth.length > 0) {
+        widthPerColumn = Math.floor(unclaimedWidth / columnsWithoutAssignedWidth.length);
+        widthPerColumnModulus = unclaimedWidth % columnsWithoutAssignedWidth.length;
+        columnsWithoutAssignedWidth.forEach(function (index, i) {
+            var config = columns[index];
+            config.width = widthPerColumn + (i < widthPerColumnModulus ? 1 : 0);
         });
-        result += '\n';
-    };
+    }
+
+    // get lines for individual columns
+    columnsLines = columns.map(function(config) {
+        return Format.lines(config.content, config);
+    });
+
+    // determine the number of lines
+    totalLines = columnsLines.reduce(function(p, c) {
+        return p > c.length ? p : c.length;
+    }, 0);
+
+    // make all column lines have the same number of lines
+    columnsLines.forEach(function(lines, colIndex) {
+        var diff = totalLines - lines.length;
+        var i;
+        var line;
+        for (i = 0; i < diff; i++) {
+            line = Format.lines('\u200B', columns[colIndex])[0].replace(/\u200B/, '');
+            lines.push(line);
+        }
+    });
+
+    // put together the result
+    for (i = 0; i < totalLines; i++) {
+        line = [];
+        columnsLines.forEach(function(lines, colIndex) {
+            line.push(lines[i]);
+        });
+        result.push(line.join(config.paddingMiddle));
+    }
 
     return result;
+};
+
+Format.columns.wrap = function(columns, configuration) {
+    var config = Object.assign({}, formatConfig.columnConfig, configuration || {});
+    config.width--;
+    return Format.columns.lines(columns, config).join('\n');
+};
+
+/**
+ * Take a string of text and extend it to the width specified by adding spaces beside existing spaces.
+ * @param {string} string
+ * @param {number} width
+ * @returns {string}
+ */
+Format.justify = function(string, width) {
+    var array = string.split(' ');
+    var length;
+    var modulus;
+    var remaining = width - Format.width(string);
+    var share;
+
+    length = array.length - 1;
+    modulus = remaining % length;
+    share = Math.floor(remaining / length);
+
+    if (remaining < 0) return string;
+    return array.reduce(function(str, word, index) {
+        var addCount = share + (index < modulus ? 1 : 0);
+        if (index === length) return str + word;
+        return str + word + ' ' + getFiller(addCount, ' ');
+    }, '');
 };
 
 /**
@@ -86,200 +130,142 @@ Format.columns = function(configuration) {
  * @returns {string[]}
  */
 Format.lines = function(str, configuration) {
-    const config = Object.assign({}, formatConfig.config, configuration || {});
-    const data = Format.words(str);
-    const formats = data.format;
-    const hardBreakWidth = Format.stringWidth(config.hardBreak);
-    const lines = [];
-    const words = data.words;
-    var adjustPosition = 0;
+    var activeFormat = [0];
     var availableWidth;
-    var endOfLine;
-    var firstWord = true;
-    var format;
-    var line;
-    var lineWidth;
-    var padRightWidth = Format.stringWidth(config.paddingRight);
-    var strWidth = Format.stringWidth;
-    var trimmed;
-    var trimmedWidth;
-    var width = config.width - strWidth(config.paddingLeft) - strWidth(config.paddingRight);
-    var widthFull = config.width;
-    var word;
+    var config = Object.assign({}, formatConfig.config, configuration || {});
+    var data = Format.separate(str);
+    var firstLineIndentWidth = Format.width(config.firstLineIndent);
+    var formats = data.format;
+    var hangingIndentWidth = Format.width(config.hangingIndent);
+    var indentWidth = firstLineIndentWidth;
+    var index = 0;
+    var line = '';
+    var lines = [];
+    var lineWidth = 0;
+    var o;
+    var paddingLeftWidth = Format.width(config.paddingLeft);
+    var paddingRightWidth = Format.width(config.paddingRight);
+    var trimmedWord;
+    var trimmedWordWidth;
+    var width = config.width - paddingLeftWidth - paddingRightWidth;
     var wordWidth;
+    var word;
+    var words = Format.words(data.value);
 
     function ansiEncode(codes) {
-        var result;
-        var uniqueCodes;
-        if (!config.ansi) return '';
-        result = ansi.escape[0] + '[0';
-        if (codes.length > 0) {
-            uniqueCodes = codes.reduce(function(p, c) {
-                if (c !== 0 && p.indexOf(c) === -1) p.push(c);
-                return p;
-            }, []);
-            if (uniqueCodes.length > 0) result += ';' + uniqueCodes.join(';');
-        }
-        return result + 'm'
+        return config.ansi ? ansi.escape[0] + '[' + codes.join(';') + 'm' : '';
     }
 
-    function trimEnd(str) {
-        return str.replace(/ $/, '')
+    function adjustFormatIndexes(index, offset) {
+        if (offset !== 0) {
+            formats.forEach(function (format) {
+                if (format.index >= index) format.index += offset;
+            });
+        }
     }
 
-    format = (function() {
+    // separate words into lines
+    while (word = words.shift()) {
+        availableWidth = width - lineWidth - indentWidth;
+        index += word.length;
+        trimmedWord = word.replace(/ $/, '');
+        trimmedWordWidth = Format.width(trimmedWord);
+        wordWidth = Format.width(word);
 
-        //add initial and terminal format codes
-        if (formats[0] && formats[0].index !== 0) formats.unshift({ index: 0, codes: [0] });
-        if (!formats[0] || formats[0].index > 0) formats.push({ index: str.length, codes: [0] });
+        // word fits on line
+        if (wordWidth <= availableWidth) {
+            line += word;
+            lineWidth += wordWidth;
 
-        var store = formats.slice(0);
-        var active = store.shift();
-        var next = store[0];
-        var position = 0;
+        // trimmed word fits on the line
+        } else if (trimmedWordWidth <= availableWidth) {
+            index--;
+            adjustFormatIndexes(formats, index, -1);
 
-        function format(word, isNewLine) {
-            var i;
-            var result = '';
-            var length = word.length;
-            var transitioned;
+            lines.push(line + trimmedWord);
+            line = '';
+            lineWidth = 0;
+            indentWidth = hangingIndentWidth;
 
-            if (next && next.index === position) {
-                active = store.shift();
-                next = store[0];
-                transitioned = true;
-            }
+        // word is too long for any line
+        } else if (trimmedWordWidth > config.width) {
+            if (line.length > 0) lines.push(line);
+            line = '';
+            lineWidth = 0;
+            indentWidth = hangingIndentWidth;
 
-            if (isNewLine) {
-                result += format.newLine('hangingIndent');
-                transitioned = false;
-            }
+            o = maximizeLargeWord(word, config.hardBreak, width);
+            lines.push(o.start);
+            words.unshift(o.remaining);
 
-            if (!config.ansi) {
-                result += word;
-            } else {
-                for (i = 0; i < length; i++) {
-                    if (next && next.index === position + i) {
-                        active = store.shift();
-                        next = store[0];
-                        transitioned = true;
-                    }
-                    if (transitioned) result += ansiEncode(active.codes);
-                    if (word.length > i) result += word.charAt(i);
-                    transitioned = false;
-                }
-            }
+            index += config.hardBreak.length;
+            adjustFormatIndexes(formats, index, config.hardBreak.length);
 
-            position += length;
-
-            return result;
-        }
-
-        format.adjustPosition = function(amount) {
-            var i;
-            for (i = 0; i < amount; i++) {
-                if (next && next.index === position + i) {
-                    active = store.shift();
-                    next = store[0];
-                }
-            }
-            position += amount;
-        };
-
-        format.newLine = function(indentKey) {
-            var nlWidth = strWidth(config.paddingLeft + config[indentKey]);
-            var nlEmpty = !active || (active.codes.length === 1 && active.codes[0] === 0);
-            var result = '';
-            if (nlWidth === 0 && nlEmpty) {
-                result += ansiEncode([0]);
-            } else if (nlWidth > 0 && nlEmpty) {
-                result += ansiEncode([0]) + config.paddingLeft + config[indentKey];
-            } else if (nlWidth === 0 && !nlEmpty) {
-                result += ansiEncode(active.codes);
-            } else if (nlWidth > 0 && !nlEmpty) {
-                result += ansiEncode([0]) + config.paddingLeft + config[indentKey];
-                result += ansiEncode(active.codes);
-            }
-            return result;
-        };
-
-        return format;
-    })();
-
-    //line = ansiEncode([0]) + config.paddingLeft + config.firstLineIndent;
-    line = format.newLine('firstLineIndent');
-    while (words.length > 0) {
-        word = words.shift();
-        wordWidth = strWidth(word);
-        trimmed = trimEnd(word);
-        trimmedWidth = strWidth(trimmed);
-        lineWidth = strWidth(line);
-        availableWidth = widthFull - lineWidth - padRightWidth;
-
-        //if the word is too long for a line then perform a hard break
-        if (trimmedWidth > width) {
-            words.unshift(word.substr(width - hardBreakWidth));
-            words.unshift(word.substr(0, width - hardBreakWidth) + config.hardBreak);
-            //adjustPosition = -1 * strWidth(config.hardBreak);
-
-        //perform a soft break
-        } else if (wordWidth > availableWidth) {
-            endOfLine = /\n$/.test(word);
-            if (endOfLine) {
-                word = word.replace(/\n$/, '');
-                trimmed = trimmed.replace(/\n$/, '');
-            }
-
-            if (trimmedWidth <= availableWidth) {
-                line += format(trimmed, false) + ansiEncode([0]);
-                if (config.trimEndOfLine) line = Format.trim(line, false, true);
-                format.adjustPosition(1);
-                line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler);
-                line += config.paddingRight;
-                lines.push(line);
-                line = '';
-            } else {
-                if (config.trimEndOfLine) line = Format.trim(line, false, true);
-                line += ansiEncode([0]);
-                line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler) + config.paddingRight;
-                lines.push(line);
-                line = format(word, true);
-            }
-
-            if (endOfLine) words.unshift('\n');
-
-        //perform a manual break
-        } else if (/\n$/.test(word)) {
-            word = word.replace(/\n$/, '');                             //remove newline from end of word
-            line += format(word, false) + ansiEncode([0]);
-            format.adjustPosition(1);
-
-            if (config.trimEndOfLine) line = Format.trim(line, false, true);
-            line += getFiller(widthFull - strWidth(line) - padRightWidth, config.filler) + config.paddingRight;
-            lines.push(line);
-
-            line = format('', true);
-
-        //add to the current line
+        // send word to next line
         } else {
-            line += format(word, !firstWord && line.length === 0);
-
+            lines.push(line);
+            line = word;
+            lineWidth = wordWidth;
+            indentWidth = hangingIndentWidth;
         }
+    }
+    if (line.length > 0) lines.push(line);
 
-        //do any after word position adjustments that are necessary
-        if (adjustPosition !== 0) {
-            format.adjustPosition(adjustPosition);
-            adjustPosition = 0;
-        }
+    // add formatting to the lines
+    if (config.ansi) {
+        index = 0;
+        lines = lines
+            .map(function(line, rowIndex) {
+                return line
+                    .split('')
+                    .map(function(ch, colIndex) {
+                        var codes = [];
+                        var newFormat;
+                        var result = '';
 
-        firstWord = false;
+                        // determine what codes to add before the character
+                        if (formats[0] && index === formats[0].index) {
+                            activeFormat = formats.shift().codes;
+                            codes = activeFormat;
+                        }
+                        if (colIndex === 0) {
+                            codes = activeFormat;
+                            codes.unshift(0);
+                        }
+
+                        // add codes before and after the character
+                        if (codes.length > 0) result += ansiEncode(ansi.clean(codes));
+                        result += ch;
+                        if (colIndex === line.length - 1) result += ansiEncode([0]);
+
+                        index++;
+                        return result;
+                    })
+                    .join('');
+            });
     }
 
-    if (line) {
-        line += ansiEncode([0]) +
-            getFiller(widthFull - strWidth(line) - padRightWidth, config.filler) + config.paddingRight;
-        lines.push(line);
-    }
+    // add padding and indents to the lines
+    lines = lines.map(function(line, index) {
+        var firstLine = index === 0;
+        var prefix;
+        var suffix;
+
+        // trim the line and justify
+        line = Format.trim(line, config.trimStartOfLine, config.trimEndOfLine);
+        if (config.justify) line = Format.justify(line, width - (firstLine ? firstLineIndentWidth : hangingIndentWidth));
+
+        // add padding and indents
+        prefix = config.paddingLeft + (index === 0 ? config.firstLineIndent : config.hangingIndent);
+        suffix = getFiller(width - Format.width(line), config.filler) + config.paddingRight;
+
+        // add encoding resets
+        if (prefix.length > 0) prefix = ansiEncode([0]) + prefix;
+        if (suffix.length > 0) suffix += ansiEncode([0]);
+
+        // return the result
+        return prefix + line + suffix;
+    });
 
     return lines;
 };
@@ -287,42 +273,43 @@ Format.lines = function(str, configuration) {
 /**
  * Take a string and separate out the ansi characters from the content.
  * @param {string} str
- * @returns {{format: {index: number, codes: number[]}, string: string}}
+ * @returns {object}
  */
 Format.separate = function(str) {
     var activeCodes = [];
+    var additionalCodes;
     var format = [];
-    var map = getCodeMap();
     var match;
     var o;
     var prevIndex = -1;
+    var prevCodes;
     var result = '';
     var rx;
 
-    //build the RegExp for finding ansi escape sequences
+    // build the RegExp for finding ansi escape sequences
     rx = new RegExp('[' + ansi.escape.join('') + ']\\[((?:\\d;?)+)+m');
 
-    //begin stripping
+    // begin separating codes from content
     while (str.length > 0) {
         match = rx.exec(str);
         if (match) {
             result += str.substr(0, match.index);
             str = str.substr(match.index + match[0].length);
-            activeCodes = normalize(activeCodes, match[1].split(';'), map);
+            additionalCodes = match[1].split(';').map((v) => parseInt(v));
+
             if (prevIndex === result.length) {
                 o = format[format.length - 1];
-                o.codes = o.codes.concat(activeCodes.slice(0).map(function (v) {
-                    return parseInt(v);
-                }));
+                o.codes = ansi.adjust(o.codes, additionalCodes);
             } else {
+                prevCodes = ansi.clearDefaults(activeCodes);
                 o = {
                     index: result.length,
-                    codes: activeCodes.slice(0).map(function (v) {
-                        return parseInt(v);
-                    })
+                    codes: ansi.adjust(prevCodes, additionalCodes)
                 };
                 format.push(o);
             }
+
+            activeCodes = o.codes;
             prevIndex = result.length;
         } else {
             result += str;
@@ -332,18 +319,18 @@ Format.separate = function(str) {
 
     return {
         format: format,
-        string: result
+        value: result
     }
 };
 
 /**
  * Transform a string into a new string.
  * @param {string} str
- * @param {object} configuration A map of strings to replace (as properties) with values (as values).
+ * @param {object} [configuration] A map of strings to replace (as properties) with values (as values).
  * @returns {string}
  */
 Format.transform = function(str, configuration) {
-    var config = Object.assign({}, formatConfig.transform, configuration);
+    var config = Object.assign({}, formatConfig.transform, configuration || {});
     Object.keys(config).forEach(function(key) {
         var value = config[key];
         str = str.replace(RegExp(key.replace(/\\/g, '\\\\')), value);
@@ -360,7 +347,7 @@ Format.transform = function(str, configuration) {
  */
 Format.trim = function(str, start, end) {
     var rx;
-    var template = '([' + ansi.escape + ']\\[(?:(?:\\d;?)+)+m)?';
+    var template = '([' + ansi.escape.join('') + ']\\[(?:(?:\\d;?)+)+m)?';
 
     //trim the start
     rx = RegExp('^' + template + ' ');
@@ -387,40 +374,37 @@ Format.trim = function(str, start, end) {
     return str;
 };
 
-Format.words = function(str) {
-    const content = Format.separate(Format.transform(str));
-    const words = [];
+/**
+ * Pass in a string and get back an array of words.
+ * @param {string} content
+ * @param {boolean} [keepAnsi=false]
+ * @returns {string[]}
+ */
+Format.words = function(content, keepAnsi) {
     var ch;
     var count = 0;
     var i;
+    var indexes = [0];
     var word = '';
+    var words = [];
 
-    for (i = 0; i < content.string.length; i++) {
+    // remove ansi formatting
+    if (!keepAnsi) content = Format.separate(content).value;
+
+    for (i = 0; i < content.length; i++) {
         count++;
-        ch = content.string.charAt(i);
+        ch = content.charAt(i);
         word += ch;
         if (formatConfig.breaks.indexOf(ch) !== -1) {
             words.push(word);
+            indexes.push(i + 1);
             word = '';
             count = 0;
         }
     }
     if (count > 0) words.push(word);
 
-    return {
-        words: words,
-        format: content.format
-    };
-};
-
-/**
- * Wrap a string.
- * @param str
- * @param configuration
- * @returns {string}
- */
-Format.wrap = function(str, configuration) {
-    return Format.lines(str, configuration).join('\n');
+    return words;
 };
 
 /**
@@ -429,7 +413,7 @@ Format.wrap = function(str, configuration) {
  * @param str
  * @returns {*}
  */
-Format.stringWidth = function(str) {
+Format.width = function(str) {
     var ch;
     var i;
     var width = stringWidth(str);
@@ -442,133 +426,63 @@ Format.stringWidth = function(str) {
     return width;
 };
 
+/**
+ * Wrap a string.
+ * @param str
+ * @param configuration
+ * @returns {string}
+ */
+Format.wrap = function(str, configuration) {
+    var config = Object.assign({}, formatConfig.config, configuration || {});
+    config.width--;     // decrement width since we're adding a \n to the end of each line
+    return Format.lines(str, config).join('\n');
+};
 
 
-function analyzeWidth(strings, config) {
-    var autoColumnCount = 0;
-    var autoWidth;
-    var columnCount = strings.length;
-    var i;
-    var modulusIndex;
-    var result = [];
-    var strWidth = Format.stringWidth;
-    var widths = config.width;
-    var widthAvailable = config.availableWidth -
-        strWidth(config.paddingLeft + config.paddingRight) -
-        ((columnCount - 1 ) * strWidth(config.paddingMiddle));
 
-    //if input is a single number then set all widths to the number specified
-    if (typeof widths === 'number' && !isNaN(widths)) {
-        i = widths;
-        widths = [];
-        for (i = 0; i < columnCount; i++) widths.push(i);
-    }
-
-    //if widths isn't an array then make it into one
-    if (!Array.isArray(widths)) {
-        widths = [];
-        for (i = 0; i < columnCount; i++) widths.push(null);
-    }
-
-    //set widths from an Format instances because those take priority
-    strings.forEach(function(item, index) {
-        if (item instanceof Format) widths[index] = item.configuration.width;
-    });
-
-    //figure out how much width is available after using assigned widths
-    autoColumnCount = 0;
-    widths.forEach(function(width, index) {
-        if (typeof width === 'number' && !isNaN(width) && index < columnCount) {
-            widthAvailable -= width;
-        } else {
-            autoColumnCount++;
-        }
-    });
-
-    //determine auto width parameters
-    if (autoColumnCount > 0) {
-        autoWidth = widthAvailable > 0 ? Math.floor(widthAvailable / autoColumnCount) : 0;
-        modulusIndex = widthAvailable > 0 ? widthAvailable % autoColumnCount : 0;
-    }
-
-    //start assigning widths
-    widths.forEach(function(width, index) {
-        if (index < columnCount) {
-            if (typeof width === 'number' && !isNaN(width)) {
-                result.push(width);
-            } else {
-                result.push(autoWidth + (modulusIndex > index ? 1 : 0));
-            }
-        }
-    });
-
-    return result;
-}
-
-function getCodeMap() {
-    const result = {
-        supported: [],
-        groups: {}
-    };
-    Object.keys(ansi.codes).forEach(function(group) {
-        Object.keys(ansi.codes[group]).forEach(function(name) {
-            var code = ansi.codes[group][name];
-            result.supported.push(code);
-            result.groups[code] = group;
-        });
-    });
-    return result;
-}
-
-function getGroupCodes(group) {
-    const result = [];
-    if (ansi.codes.hasOwnProperty(group)) {
-        Object.keys(ansi.codes[group]).forEach(function(name) {
-            var code = ansi.codes[group][name];
-            result.push(code);
-        });
-    }
-    return result;
-}
 
 function getFiller(count, filler) {
     var result = '';
     if (count < 0) count = 0;
-    if (filler && typeof filler === 'string' && Format.stringWidth(filler) > 0) {
-        while (Format.stringWidth(result) < count) {
+    if (filler && typeof filler === 'string' && Format.width(filler) > 0) {
+        while (Format.width(result) < count) {
             result += filler;
         }
-        while (Format.stringWidth(result) > count) {
+        while (Format.width(result) > count) {
             result = result.substr(0, result.length - 1);
         }
     }
     return result;
 }
 
-function normalize(active, codes, map) {
-    var index;
-    active = active.slice(0);
-    codes = codes.slice(0);
+/**
+ * If a word is too large for a line then find out how much will
+ * fit on one line and return the result.
+ * @param {string} word
+ * @param {string} hardBreakStr
+ * @param {number} maxWidth
+ * @returns {object}
+ */
+function maximizeLargeWord(word, hardBreakStr, maxWidth) {
+    var availableWidth;
+    var ch;
+    var chWidth;
+    var i;
 
-    //look for a reset code
-    index = codes.indexOf('0');
-    if (index !== -1) {
-        active = [0];
-        codes.splice(index, 1);
+    availableWidth = maxWidth - Format.width(hardBreakStr);
+
+    for (i = 0; i < word.length; i++) {
+        ch = word.charAt(i);
+        chWidth = Format.width(ch);
+        if (availableWidth >= chWidth) {
+            availableWidth -= chWidth;
+        } else {
+            break;
+        }
     }
 
-    //add and remove codes to update the active group codes
-    codes.forEach(function(code) {
-        var group = map.groups[code];
-        var index;
-        if (group) {
-            getGroupCodes(group).forEach(function(groupCode) {
-                var index = active.indexOf(groupCode);
-                if (index !== -1) active.splice(index, 1);
-            });
-            active.push(code);
-        }
-    });
-
-    return active;
+    return {
+        start: word.substr(0, i) + hardBreakStr,
+        remaining: word.substr(i)
+    };
 }
