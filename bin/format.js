@@ -100,20 +100,28 @@ Format.columns.wrap = function(columns, configuration) {
 
 /**
  * Take a string of text and extend it to the width specified by adding spaces beside existing spaces.
- * @param {string} string
- * @param {number} width
+ * @param {string} string The string to justify
+ * @param {number} width The width to stretch the string to
+ * @param {number} [limit] The maximum number of spaces to allow between words.
  * @returns {string}
  */
-Format.justify = function(string, width) {
+Format.justify = function(string, width, limit) {
     var array = string.split(' ');
     var length;
     var modulus;
     var remaining = width - Format.width(string);
     var share;
 
+    if (arguments.length < 3) limit = formatConfig.config.justifyLimit;
+
     length = array.length - 1;
     modulus = remaining % length;
     share = Math.floor(remaining / length);
+
+    if (share >= limit) {
+        share = limit;
+        modulus = 0;
+    }
 
     if (remaining < 0) return string;
     return array.reduce(function(str, word, index) {
@@ -142,6 +150,8 @@ Format.lines = function(str, configuration) {
     var line = '';
     var lines = [];
     var lineWidth = 0;
+    var newLine;
+    var newLineRx = /\n$/;
     var o;
     var paddingLeftWidth = Format.width(config.paddingLeft);
     var paddingRightWidth = Format.width(config.paddingRight);
@@ -172,6 +182,9 @@ Format.lines = function(str, configuration) {
         trimmedWordWidth = Format.width(trimmedWord);
         wordWidth = Format.width(word);
 
+        newLine = newLineRx.test(word);
+        if (newLine) word = word.substr(0, word.length - 1);
+
         // word fits on line
         if (wordWidth <= availableWidth) {
             line += word;
@@ -200,12 +213,21 @@ Format.lines = function(str, configuration) {
 
             index += config.hardBreak.length;
             adjustFormatIndexes(formats, index, config.hardBreak.length);
+            newLine = false;
 
         // send word to next line
         } else {
             lines.push(line);
             line = word;
             lineWidth = wordWidth;
+            indentWidth = hangingIndentWidth;
+        }
+
+        // if there is a new line character at the end of the word then start a new line
+        if (newLine) {
+            lines.push(line);
+            line = '';
+            lineWidth = 0;
             indentWidth = hangingIndentWidth;
         }
     }

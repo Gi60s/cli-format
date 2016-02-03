@@ -51,7 +51,7 @@ describe('format', function() {
 
         });
 
-        describe('two columns different length', function() {
+        describe('two columns, first with more lines', function() {
             var lines = format.columns.lines(['01234 678 012', 'abcd'], { width: 20, paddingMiddle: '' });
 
             it('has two lines', function() {
@@ -64,6 +64,23 @@ describe('format', function() {
 
             it('second line', function() {
                 expect(lines[1]).to.equal('012                 ');
+            });
+
+        });
+
+        describe('two columns, second with more lines', function() {
+            var lines = format.columns.lines(['abcd', '01234 678 012'], { width: 20, paddingMiddle: '' });
+
+            it('has two lines', function() {
+                expect(lines.length).to.equal(2);
+            });
+
+            it('first line', function() {
+                expect(lines[0]).to.equal('abcd      01234 678 ');
+            });
+
+            it('second line', function() {
+                expect(lines[1]).to.equal('          012       ');
             });
 
         });
@@ -81,6 +98,23 @@ describe('format', function() {
 
             it('second line', function() {
                 expect(lines[1]).to.equal('012       |         ');
+            });
+
+        });
+
+        describe('two columns with new line', function() {
+            var lines = format.columns.lines(['abcd', '01234\n01 2345'], { width: 20, paddingMiddle: '' });
+
+            it('has two lines', function() {
+                expect(lines.length).to.equal(2);
+            });
+
+            it('first line', function() {
+                expect(lines[0]).to.equal('abcd      01234     ');
+            });
+
+            it('second line', function() {
+                expect(lines[1]).to.equal('          01 2345   ');
             });
 
         });
@@ -559,6 +593,24 @@ describe('format', function() {
                 expect(lines[1]).to.equal('  2345');
             });
 
+        });
+
+        describe('new line', function() {
+            var config = { ansi: false, width: 10 };
+            var input = '0123\n012 4567';
+            var lines = format.lines(input, config);
+
+            it('has two lines', function() {
+                expect(lines.length).to.equal(2);
+            });
+
+            it('first line', function() {
+                expect(lines[0]).to.equal('0123');
+            });
+
+            it('second line', function() {
+                expect(lines[1]).to.equal('012 4567');
+            });
         });
 
     });

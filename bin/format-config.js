@@ -15,6 +15,7 @@ exports.config = {
     hangingIndent: '',                              //content to add to the start of all but the first line
     hardBreak: '-',                                 //if a word is longer than the width this hard break is used to split the word
     justify: false,                                 //set to true to justify text
+    justifyLimit: 3,                                //the maximum number of spaces between words when justifying
     paddingLeft: '',                                //padding to add to the left of output
     paddingRight: '',                               //padding to add to the right of output
     trimEndOfLine: true,                            //true to trim end of line or a number to indicate how much to trim

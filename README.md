@@ -103,6 +103,7 @@ The functions `.wrap()`, `.lines()`, `.columns.wrap()`, and `.columns.lines()` e
 - **filler** - A repeatable sequence of characters to use from the last word in a line until the end of the line. This is a good way to have leader dots (…) at the end of your lines. Defaults to an empty string.
 - **firstLineIndent** - A string to put at the beginning of the first line of your content. Defaults to an empty string.
 - **justify** - Set to true to justify wrapped text. Defaults to `false`.
+- **justifyLimit** - The maximum number of spaces to add between words when justifying.
 - **hangingIndent** - A string to put at the beginning of all except the first line of your content. Defaults to an empty string.
 - **paddingLeft** - A string to put at the beginning of every line, before the *firstLineIndent* and the *hangingIndent*.
 - **paddingMiddle** - A string to place between columns. This option will only be recognized as a column configuration option. Defaults to three spaces.
