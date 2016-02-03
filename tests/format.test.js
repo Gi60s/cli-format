@@ -224,380 +224,57 @@ describe('format', function() {
             describe('ends at line length', function() {
                 var input = '0123456789 ' + chalk.bold(123456789) + ' 1';
                 var lines = format.lines(input, config);
-                var formats = lines.map((line) => format.separate(line).format);
-
-                describe('first line', function() {
-
-                    it('has four format sets', function() {
-                        expect(formats[0].length).to.equal(4);
-                    });
-
-                    describe('first format', function() {
-
-                        it('has index 0', function() {
-                            expect(formats[0][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[0][0].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                    describe('second format', function() {
-
-                        it('has index 11', function() {
-                            expect(formats[0][1].index).to.equal(11);
-                        });
-
-                        it('has code [1]', function() {
-                            expect(formats[0][1].codes).to.deep.equal([1])
-                        });
-
-                    });
-
-                    describe('third format', function() {
-
-                        it('has index 19', function() {
-                            expect(formats[0][2].index).to.equal(19);
-                        });
-
-                        it('has code [22]', function() {
-                            expect(formats[0][2].codes).to.deep.equal([22])
-                        });
-
-                    });
-
-                    describe('forth format', function() {
-
-                        it('has index 20', function() {
-                            expect(formats[0][3].index).to.equal(20);
-                        });
-
-                        it('has code [22]', function() {
-                            expect(formats[0][3].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
-
-                describe('second line', function() {
-
-                    it('has two format sets', function() {
-                        expect(formats[1].length).to.equal(2);
-                    });
-
-                    describe('first format', function() {
-
-                        it('has index 0', function() {
-                            expect(formats[1][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][0].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                    describe('second format', function() {
-
-                        it('has index 1', function() {
-                            expect(formats[1][1].index).to.equal(1);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][1].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
+                var expected = [
+                    { '0': [0],  '11': [1],  '19': [22], '20': [0] },
+                    { '0': [0],  '1': [0] }
+                ];
+                multiLineFormatValidator(2, lines, expected);
 
             });
 
             describe('ends before line length', function() {
                 var input = '0123456789 ' + chalk.bold('12345') + '6789 1';
                 var lines = format.lines(input, config);
-                var formats = lines.map((line) => format.separate(line).format);
-
-                describe('first line', function() {
-
-                    it('first line has four format sets', function () {
-                        expect(formats[0].length).to.equal(4);
-                    });
-
-                    describe('first format', function () {
-
-                        it('has index 0', function () {
-                            expect(formats[0][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][0].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                    describe('second format', function () {
-
-                        it('has index 11', function () {
-                            expect(formats[0][1].index).to.equal(11);
-                        });
-
-                        it('has code [1]', function () {
-                            expect(formats[0][1].codes).to.deep.equal([1])
-                        });
-
-                    });
-
-                    describe('third format', function () {
-
-                        it('has index 16', function () {
-                            expect(formats[0][2].index).to.equal(16);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][2].codes).to.deep.equal([22])
-                        });
-
-                    });
-
-                    describe('forth format', function () {
-
-                        it('has index 20', function () {
-                            expect(formats[0][3].index).to.equal(20);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][3].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
-
-                describe('second line', function() {
-
-                    it('has two format sets', function() {
-                        expect(formats[1].length).to.equal(2);
-                    });
-
-                    describe('first format', function() {
-
-                        it('has index 0', function() {
-                            expect(formats[1][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][0].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                    describe('second format', function() {
-
-                        it('has index 1', function() {
-                            expect(formats[1][1].index).to.equal(1);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][1].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
+                var expected = [
+                    { '0': [0],  '11': [1],  '16': [22], '20': [0] },
+                    { '0': [0],  '1': [0] }
+                ];
+                multiLineFormatValidator(2, lines, expected);
 
             });
 
             describe('traverses multiple lines', function() {
                 var input = '0123456789 ' + chalk.bold('1234567 012345') + ' 789';
                 var lines = format.lines(input, config);
-                var formats = lines.map((line) => format.separate(line).format);
-
-                describe('first line', function() {
-
-                    it('first line has three format sets', function () {
-                        expect(formats[0].length).to.equal(3);
-                    });
-
-                    describe('first format', function () {
-
-                        it('has index 0', function () {
-                            expect(formats[0][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][0].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                    describe('second format', function () {
-
-                        it('has index 11', function () {
-                            expect(formats[0][1].index).to.equal(11);
-                        });
-
-                        it('has code [1]', function () {
-                            expect(formats[0][1].codes).to.deep.equal([1])
-                        });
-
-                    });
-
-                    describe('third format', function () {
-
-                        it('has index 19', function () {
-                            expect(formats[0][2].index).to.equal(19);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][2].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
-
-                describe('second line', function() {
-
-                    it('has three format sets', function() {
-                        expect(formats[1].length).to.equal(3);
-                    });
-
-                    describe('first format', function() {
-
-                        it('has index 0', function() {
-                            expect(formats[1][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][0].codes).to.deep.equal([0,1])
-                        });
-
-                    });
-
-                    describe('second format', function() {
-
-                        it('has index 1', function() {
-                            expect(formats[1][1].index).to.equal(6);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][1].codes).to.deep.equal([22])
-                        });
-
-                    });
-
-                    describe('third format', function() {
-
-                        it('has index 10', function() {
-                            expect(formats[1][2].index).to.equal(10);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][2].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
+                var expected = [
+                    { '0': [0],     '11': [1],  '19': [0] },
+                    { '0': [0, 1],  '6': [22],  '10': [0] }
+                ];
+                multiLineFormatValidator(2, lines, expected);
 
             });
 
             describe('traverses new line', function() {
                 var input = '012 ' + chalk.bold('45\n0123') + ' 567';
                 var lines = format.lines(input, config);
-                var formats = lines.map((line) => format.separate(line).format);
+                var expected = [
+                    { '0': [0],     '4': [1],   '6': [0] },
+                    { '0': [0, 1],  '4': [22],  '8': [0] }
+                ];
+                multiLineFormatValidator(2, lines, expected);
 
-                describe('first line', function() {
+            });
 
-                    it('first line has three format sets', function () {
-                        expect(formats[0].length).to.equal(3);
-                    });
-
-                    describe('first format', function () {
-
-                        it('has index 0', function () {
-                            expect(formats[0][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][0].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                    describe('second format', function () {
-
-                        it('has index 4', function () {
-                            expect(formats[0][1].index).to.equal(4);
-                        });
-
-                        it('has code [1]', function () {
-                            expect(formats[0][1].codes).to.deep.equal([1])
-                        });
-
-                    });
-
-                    describe('third format', function () {
-
-                        it('has index 6', function () {
-                            expect(formats[0][2].index).to.equal(6);
-                        });
-
-                        it('has code [0]', function () {
-                            expect(formats[0][2].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
-
-                describe('second line', function() {
-
-                    it('has three format sets', function() {
-                        expect(formats[1].length).to.equal(3);
-                    });
-
-                    describe('first format', function() {
-
-                        it('has index 0', function() {
-                            expect(formats[1][0].index).to.equal(0);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][0].codes).to.deep.equal([0,1])
-                        });
-
-                    });
-
-                    describe('second format', function() {
-
-                        it('has index 4', function() {
-                            expect(formats[1][1].index).to.equal(4);
-                        });
-
-                        it('has code [22]', function() {
-                            expect(formats[1][1].codes).to.deep.equal([22])
-                        });
-
-                    });
-
-                    describe('third format', function() {
-
-                        it('has index 8', function() {
-                            expect(formats[1][2].index).to.equal(8);
-                        });
-
-                        it('has code [0]', function() {
-                            expect(formats[1][2].codes).to.deep.equal([0])
-                        });
-
-                    });
-
-                });
+            describe('new format per line', function() {
+                var input = '01\n' + chalk.bold('23\n') + chalk.italic('45') + '\n' + chalk.underline('67');
+                var lines = format.lines(input, config);
+                var expected = [
+                    { '0': [0],     '2': [0] },
+                    { '0': [0, 1],  '2': [0] },
+                    { '0': [0, 3],  '2': [0] },
+                    { '0': [0, 4],  '2': [0] }
+                ];
+                multiLineFormatValidator(4, lines, expected);
 
             });
 
@@ -884,3 +561,42 @@ describe('format', function() {
     });
 
 });
+
+function formatValidator(formats, expectedMap) {
+    var keys = Object.keys(expectedMap);
+
+    it('has ' + keys.length + ' format sets', function() {
+        expect(formats.length).to.equal(keys.length);
+    });
+
+    keys.forEach(function(key, index) {
+        var value = expectedMap[key];
+
+        describe('format ' + index, function() {
+
+            it('has index ' + key, function() {
+                expect(formats[index].index).to.equal(parseInt(key));
+            });
+
+            it('has code [' + value.join(',') + ']', function() {
+                expect(formats[index].codes).to.deep.equal(value)
+            });
+
+        });
+
+    });
+}
+
+function multiLineFormatValidator(expectedLines, lines, expected) {
+    var formats = lines.map((line) => format.separate(line).format);
+
+    it('has ' + expectedLines + ' lines', function() {
+        expect(lines.length).to.be.equal(expectedLines);
+    });
+
+    formats.forEach(function(format, lineNo) {
+        describe('line ' + (lineNo + 1), function() {
+            formatValidator(format, expected[lineNo]);
+        })
+    });
+}

@@ -179,15 +179,10 @@ Format.lines = function(str, configuration) {
     while (word = words.shift()) {
         availableWidth = width - lineWidth - indentWidth;
         index += word.length;
+        newLine = newLineRx.test(word);
         trimmedWord = word.replace(/ $/, '');
         trimmedWordWidth = Format.width(trimmedWord);
         wordWidth = Format.width(word);
-
-        newLine = newLineRx.test(word);
-        if (newLine) {
-            word = word.substr(0, word.length - 1);
-            adjustFormatIndexes(-1);
-        }
 
         // word fits on line
         if (wordWidth <= availableWidth) {
@@ -275,6 +270,9 @@ Format.lines = function(str, configuration) {
         var indentWidth = firstLine ? firstLineIndentWidth : hangingIndentWidth;
         var prefix;
         var suffix;
+
+        // remove all new line characters as they were accounted for during line creation
+        line = line.replace(/\n/g, '');
 
         // trim the line and justify
         line = Format.trim(line, config.trimStartOfLine, config.trimEndOfLine);
