@@ -155,11 +155,25 @@ Get the code group and name from the code number.
 - **codes** - The ansi codes.
 
 **Returns** an object with the following format:
+
 ```js
 { fullName: 'group.name', group: 'group', name: 'name' }
 ```
 
-For example, `cliFormat.ansi.id(1)` will return `{ fullName: 'weight.bold', group: 'weight', name: 'bold' }`.
+**Example**
+
+```js
+var result = cliFormat.ansi.id(1);
+console.log(result);
+
+/*
+{
+    fullName: 'weight.bold',
+    group: 'weight',
+    name: 'bold'
+}
+*
+```
 
 ### columns.lines ( columns [, configuration ] )
 
