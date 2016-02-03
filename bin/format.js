@@ -166,7 +166,8 @@ Format.lines = function(str, configuration) {
         return config.ansi ? ansi.escape[0] + '[' + codes.join(';') + 'm' : '';
     }
 
-    function adjustFormatIndexes(index, offset) {
+    function adjustFormatIndexes(offset) {
+        index += offset;
         if (offset !== 0) {
             formats.forEach(function (format) {
                 if (format.index >= index) format.index += offset;
@@ -185,7 +186,7 @@ Format.lines = function(str, configuration) {
         newLine = newLineRx.test(word);
         if (newLine) {
             word = word.substr(0, word.length - 1);
-            adjustFormatIndexes(formats, index, -1);
+            adjustFormatIndexes(-1);
         }
 
         // word fits on line
@@ -195,8 +196,7 @@ Format.lines = function(str, configuration) {
 
         // trimmed word fits on the line
         } else if (trimmedWordWidth <= availableWidth) {
-            index--;
-            adjustFormatIndexes(formats, index, -1);
+            adjustFormatIndexes(-1);
 
             lines.push(line + trimmedWord);
             line = '';
@@ -214,8 +214,7 @@ Format.lines = function(str, configuration) {
             lines.push(o.start);
             words.unshift(o.remaining);
 
-            index += config.hardBreak.length;
-            adjustFormatIndexes(formats, index, config.hardBreak.length);
+            adjustFormatIndexes(config.hardBreak.length);
             newLine = false;
 
         // send word to next line

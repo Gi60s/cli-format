@@ -228,8 +228,8 @@ describe('format', function() {
 
                 describe('first line', function() {
 
-                    it('has three format sets', function() {
-                        expect(formats[0].length).to.equal(3);
+                    it('has four format sets', function() {
+                        expect(formats[0].length).to.equal(4);
                     });
 
                     describe('first format', function() {
@@ -258,12 +258,24 @@ describe('format', function() {
 
                     describe('third format', function() {
 
-                        it('has index 20', function() {
-                            expect(formats[0][2].index).to.equal(20);
+                        it('has index 19', function() {
+                            expect(formats[0][2].index).to.equal(19);
                         });
 
-                        it('has code [0]', function() {
-                            expect(formats[0][2].codes).to.deep.equal([0])
+                        it('has code [22]', function() {
+                            expect(formats[0][2].codes).to.deep.equal([22])
+                        });
+
+                    });
+
+                    describe('forth format', function() {
+
+                        it('has index 20', function() {
+                            expect(formats[0][3].index).to.equal(20);
+                        });
+
+                        it('has code [22]', function() {
+                            expect(formats[0][3].codes).to.deep.equal([0])
                         });
 
                     });
@@ -493,6 +505,104 @@ describe('format', function() {
                 });
 
             });
+
+
+            describe('traverses new line', function() {
+                var input = '012 ' + chalk.bold('45\n0123') + ' 567';
+                var lines = format.lines(input, config);
+                var formats = lines.map((line) => format.separate(line).format);
+
+                describe('first line', function() {
+
+                    it('first line has three format sets', function () {
+                        expect(formats[0].length).to.equal(3);
+                    });
+
+                    describe('first format', function () {
+
+                        it('has index 0', function () {
+                            expect(formats[0][0].index).to.equal(0);
+                        });
+
+                        it('has code [0]', function () {
+                            expect(formats[0][0].codes).to.deep.equal([0])
+                        });
+
+                    });
+
+                    describe('second format', function () {
+
+                        it('has index 4', function () {
+                            expect(formats[0][1].index).to.equal(4);
+                        });
+
+                        it('has code [1]', function () {
+                            expect(formats[0][1].codes).to.deep.equal([1])
+                        });
+
+                    });
+
+                    describe('third format', function () {
+
+                        it('has index 6', function () {
+                            expect(formats[0][2].index).to.equal(6);
+                        });
+
+                        it('has code [0]', function () {
+                            expect(formats[0][2].codes).to.deep.equal([0])
+                        });
+
+                    });
+
+                });
+
+                describe('second line', function() {
+
+                    it('has three format sets', function() {
+                        expect(formats[1].length).to.equal(3);
+                    });
+
+                    describe('first format', function() {
+
+                        it('has index 0', function() {
+                            expect(formats[1][0].index).to.equal(0);
+                        });
+
+                        it('has code [0]', function() {
+                            expect(formats[1][0].codes).to.deep.equal([0,1])
+                        });
+
+                    });
+
+                    describe('second format', function() {
+
+                        it('has index 4', function() {
+                            expect(formats[1][1].index).to.equal(4);
+                        });
+
+                        it('has code [22]', function() {
+                            expect(formats[1][1].codes).to.deep.equal([22])
+                        });
+
+                    });
+
+                    describe('third format', function() {
+
+                        it('has index 8', function() {
+                            expect(formats[1][2].index).to.equal(8);
+                        });
+
+                        it('has code [0]', function() {
+                            expect(formats[1][2].codes).to.deep.equal([0])
+                        });
+
+                    });
+
+                });
+
+            });
+
+
 
         });
 
