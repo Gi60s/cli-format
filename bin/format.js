@@ -183,7 +183,10 @@ Format.lines = function(str, configuration) {
         wordWidth = Format.width(word);
 
         newLine = newLineRx.test(word);
-        if (newLine) word = word.substr(0, word.length - 1);
+        if (newLine) {
+            word = word.substr(0, word.length - 1);
+            adjustFormatIndexes(formats, index, -1);
+        }
 
         // word fits on line
         if (wordWidth <= availableWidth) {
