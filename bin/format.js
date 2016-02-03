@@ -244,7 +244,6 @@ Format.lines = function(str, configuration) {
                     .split('')
                     .map(function(ch, colIndex) {
                         var codes = [];
-                        var newFormat;
                         var result = '';
 
                         // determine what codes to add before the character
@@ -272,16 +271,18 @@ Format.lines = function(str, configuration) {
     // add padding and indents to the lines
     lines = lines.map(function(line, index) {
         var firstLine = index === 0;
+        var indent = firstLine ? config.firstLineIndent : config.hangingIndent;
+        var indentWidth = firstLine ? firstLineIndentWidth : hangingIndentWidth;
         var prefix;
         var suffix;
 
         // trim the line and justify
         line = Format.trim(line, config.trimStartOfLine, config.trimEndOfLine);
-        if (config.justify) line = Format.justify(line, width - (firstLine ? firstLineIndentWidth : hangingIndentWidth));
+        if (config.justify) line = Format.justify(line, width - indentWidth);
 
         // add padding and indents
-        prefix = config.paddingLeft + (index === 0 ? config.firstLineIndent : config.hangingIndent);
-        suffix = getFiller(width - Format.width(line), config.filler) + config.paddingRight;
+        prefix = config.paddingLeft + indent;
+        suffix = getFiller(width - Format.width(line) - indentWidth, config.filler) + config.paddingRight;
 
         // add encoding resets
         if (prefix.length > 0) prefix = ansiEncode([0]) + prefix;

@@ -506,7 +506,6 @@ describe('format', function() {
 
             });
 
-
             describe('traverses new line', function() {
                 var input = '012 ' + chalk.bold('45\n0123') + ' 567';
                 var lines = format.lines(input, config);
@@ -602,46 +601,6 @@ describe('format', function() {
 
             });
 
-
-
-        });
-
-        describe('paddingLeft', function() {
-            var config = { filler: '', ansi: false, width: 10, paddingLeft: '>' };
-            var input = '12345 789 123';
-            var lines = format.lines(input, config);
-
-            it('has two lines', function() {
-                expect(lines.length).to.equal(2);
-            });
-
-            it('first line has padding', function() {
-                expect(lines[0]).to.equal('>12345 789');
-            });
-
-            it('second line has padding', function() {
-                expect(lines[1]).to.equal('>123');
-            });
-
-        });
-
-        describe('paddingRight', function() {
-            var config = { filler: '', ansi: false, width: 10, paddingRight: '<' };
-            var input = '12345 789 123';
-            var lines = format.lines(input, config);
-
-            it('has two lines', function() {
-                expect(lines.length).to.equal(2);
-            });
-
-            it('first line has padding', function() {
-                expect(lines[0]).to.equal('12345 789<');
-            });
-
-            it('second line has padding', function() {
-                expect(lines[1]).to.equal('123<');
-            });
-
         });
 
         describe('filler', function() {
@@ -667,8 +626,46 @@ describe('format', function() {
 
         });
 
+        describe('paddingLeft', function() {
+            var config = { filler: ' ', ansi: false, width: 10, paddingLeft: '>' };
+            var input = '12345 789 123';
+            var lines = format.lines(input, config);
+
+            it('has two lines', function() {
+                expect(lines.length).to.equal(2);
+            });
+
+            it('first line has padding', function() {
+                expect(lines[0]).to.equal('>12345 789');
+            });
+
+            it('second line has padding', function() {
+                expect(lines[1]).to.equal('>123      ');
+            });
+
+        });
+
+        describe('paddingRight', function() {
+            var config = { filler: ' ', ansi: false, width: 10, paddingRight: '<' };
+            var input = '12345 789 123';
+            var lines = format.lines(input, config);
+
+            it('has two lines', function() {
+                expect(lines.length).to.equal(2);
+            });
+
+            it('first line has padding', function() {
+                expect(lines[0]).to.equal('12345 789<');
+            });
+
+            it('second line has padding', function() {
+                expect(lines[1]).to.equal('123      <');
+            });
+
+        });
+
         describe('first line indent', function() {
-            var config = { firstLineIndent: '  ', ansi: false, width: 10 };
+            var config = { firstLineIndent: '  ', filler: ' ', ansi: false, width: 10 };
             var input = '2345 789 012345';
             var lines = format.lines(input, config);
 
@@ -681,13 +678,13 @@ describe('format', function() {
             });
 
             it('second line', function() {
-                expect(lines[1]).to.equal('012345');
+                expect(lines[1]).to.equal('012345    ');
             });
 
         });
 
         describe('hanging indent', function() {
-            var config = { hangingIndent: '  ', ansi: false, width: 10 };
+            var config = { hangingIndent: '  ', filler: ' ', ansi: false, width: 10 };
             var input = '012345 789 2345';
             var lines = format.lines(input, config);
 
@@ -700,7 +697,7 @@ describe('format', function() {
             });
 
             it('second line', function() {
-                expect(lines[1]).to.equal('  2345');
+                expect(lines[1]).to.equal('  2345    ');
             });
 
         });
