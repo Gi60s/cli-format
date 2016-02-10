@@ -102,26 +102,18 @@ Format.columns.wrap = function(columns, configuration) {
  * Take a string of text and extend it to the width specified by adding spaces beside existing spaces.
  * @param {string} string The string to justify
  * @param {number} width The width to stretch the string to
- * @param {number} [limit] The maximum number of spaces to allow between words.
  * @returns {string}
  */
-Format.justify = function(string, width, limit) {
+Format.justify = function(string, width) {
     var array = string.split(' ');
     var length;
     var modulus;
     var remaining = width - Format.width(string);
     var share;
 
-    if (arguments.length < 3) limit = formatConfig.config.justifyLimit;
-
     length = array.length - 1;
     modulus = remaining % length;
     share = Math.floor(remaining / length);
-
-    if (share >= limit) {
-        share = limit;
-        modulus = 0;
-    }
 
     if (remaining < 0) return string;
     return array.reduce(function(str, word, index) {
@@ -147,6 +139,7 @@ Format.lines = function(str, configuration) {
     var hangingIndentWidth = Format.width(config.hangingIndent);
     var indentWidth = firstLineIndentWidth;
     var index = 0;
+    var lastLineIndexes = {};
     var line = '';
     var lines = [];
     var lineWidth = 0;
@@ -199,15 +192,24 @@ Format.lines = function(str, configuration) {
             indentWidth = hangingIndentWidth;
 
         // word is too long for any line
-        } else if (trimmedWordWidth > config.width) {
-            if (line.length > 0) lines.push(line);
+        } else if (trimmedWordWidth > width - indentWidth) {
+
+            // add to the end of the current line
+            if (availableWidth > 3) {
+                o = maximizeLargeWord(word, config.hardBreak, availableWidth);
+                lines.push(line + o.start);
+
+            // put on a new line
+            } else {
+                if (line.length > 0) lines.push(line);
+                o = maximizeLargeWord(word, config.hardBreak, width - indentWidth);
+                lines.push(o.start);
+            }
+            words.unshift(o.remaining);
+
             line = '';
             lineWidth = 0;
             indentWidth = hangingIndentWidth;
-
-            o = maximizeLargeWord(word, config.hardBreak, width);
-            lines.push(o.start);
-            words.unshift(o.remaining);
 
             adjustFormatIndexes(config.hardBreak.length);
             newLine = false;
@@ -215,13 +217,20 @@ Format.lines = function(str, configuration) {
         // send word to next line
         } else {
             lines.push(line);
-            line = word;
-            lineWidth = wordWidth;
             indentWidth = hangingIndentWidth;
+            if (trimmedWordWidth === width - indentWidth) {
+                lines.push(trimmedWord);
+                line = '';
+                lineWidth = 0;
+            } else {
+                line = word;
+                lineWidth = wordWidth;
+            }
         }
 
         // if there is a new line character at the end of the word then start a new line
         if (newLine) {
+            lastLineIndexes[lines.length] = true;
             lines.push(line);
             line = '';
             lineWidth = 0;
@@ -229,6 +238,7 @@ Format.lines = function(str, configuration) {
         }
     }
     if (line.length > 0) lines.push(line);
+    lastLineIndexes[lines.length - 1] = true;
 
     // add formatting to the lines
     if (config.ansi) {
@@ -268,6 +278,7 @@ Format.lines = function(str, configuration) {
         var firstLine = index === 0;
         var indent = firstLine ? config.firstLineIndent : config.hangingIndent;
         var indentWidth = firstLine ? firstLineIndentWidth : hangingIndentWidth;
+        var isLastLine = lastLineIndexes[index];
         var prefix;
         var suffix;
 
@@ -275,8 +286,8 @@ Format.lines = function(str, configuration) {
         line = line.replace(/\n/g, '');
 
         // trim the line and justify
-        line = Format.trim(line, config.trimStartOfLine, config.trimEndOfLine);
-        if (config.justify) line = Format.justify(line, width - indentWidth);
+        line = Format.trim(line, config.trimStartOfLine, config.trimEndOfLine || config.justify);
+        if (!isLastLine && config.justify) line = Format.justify(line, width - indentWidth);
 
         // add padding and indents
         prefix = config.paddingLeft + indent;

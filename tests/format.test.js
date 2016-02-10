@@ -197,7 +197,7 @@ describe('format', function() {
             });
 
             describe('long word', function() {
-                var input = '0123 5678901234567890123456789 1234';
+                var input = '0123 56789012345678901234 6789 1234';
                 var lines = format.lines(input, config);
 
                 it('has three lines', function() {
@@ -209,11 +209,162 @@ describe('format', function() {
                 });
 
                 it('second line', function() {
-                    expect(lines[1]).to.be.equal('5678901234567890123-');
+                    expect(lines[1]).to.be.equal('56789012345678901234');
                 });
 
                 it('third line', function() {
-                    expect(lines[2]).to.be.equal('456789 1234');
+                    expect(lines[2]).to.be.equal('6789 1234');
+                });
+            });
+
+            describe('too long word same line', function() {
+                var input = '0123 5678901234567890123456789 1234';
+                var lines = format.lines(input, config);
+
+                it('has two lines', function() {
+                    expect(lines.length).to.be.equal(2);
+                });
+
+                it('first line', function() {
+                    expect(lines[0]).to.be.equal('0123 56789012345678-');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('90123456789 1234');
+                });
+            });
+
+            describe('too long word next line', function() {
+                var input = '012345 7890123456 8901234567890123456789 1234';
+                var lines = format.lines(input, config);
+
+                it('has three lines', function() {
+                    expect(lines.length).to.be.equal(3);
+                });
+
+                it('first line', function() {
+                    expect(lines[0]).to.be.equal('012345 7890123456 ');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('8901234567890123456-');
+                });
+
+                it('third line', function() {
+                    expect(lines[2]).to.be.equal('789 1234');
+                });
+            });
+
+            describe('too long word first line indent', function() {
+                var input = '2345678901234567890 23456789 1234';
+                var lines = format.lines(input, { filler: '', ansi: false, width: 20, firstLineIndent: '  ' });
+
+                it('has two lines', function() {
+                    expect(lines.length).to.be.equal(2);
+                });
+
+                it('first line', function() {   //01234
+                    expect(lines[0]).to.be.equal('  23456789012345678-');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('90 23456789 1234');
+                });
+            });
+
+            describe('too long word hanging indent', function() {
+                var input = '0123 567890123456789012345 789 1234';
+                var lines = format.lines(input, { filler: '', ansi: false, width: 20, hangingIndent: '  ' });
+
+                it('has two lines', function() {
+                    expect(lines.length).to.be.equal(2);
+                });
+
+                it('first line', function() {
+                    expect(lines[0]).to.be.equal('0123 56789012345678-');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('  9012345 789 1234');
+                });
+            });
+
+            describe('too long word for 3 lines', function() {
+                var input = '0123 56789012345678901234567890123456789012345 6789 1234';
+                var lines = format.lines(input, { filler: '', ansi: false, width: 20 });
+
+                it('has three lines', function() {
+                    expect(lines.length).to.be.equal(3);
+                });
+
+                it('first line', function() {
+                    expect(lines[0]).to.be.equal('0123 56789012345678-');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('9012345678901234567-');
+                });
+
+                it('third line', function() {
+                    expect(lines[2]).to.be.equal('89012345 6789 1234');
+                });
+            });
+
+            describe('justification across lines', function() {
+                           //0123456789 123456789
+                var input = '0123 56 89 abcdef ' +
+                            '012 45678 0abc efg ' +
+                            '01234567890abcdefghi ' +
+                            '01234 67';
+                var lines = format.lines(input, { filler: '', ansi: false, width: 20, justify: true });
+
+                it('has 3 lines', function() {
+                    expect(lines.length).to.be.equal(4);
+                });
+
+                it('first line', function() {
+                    expect(lines[0]).to.be.equal('0123  56  89  abcdef');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('012  45678  0abc efg');
+                });
+
+                it('third line', function() {   //01234567890123456789
+                    expect(lines[2]).to.be.equal('01234567890abcdefghi');
+                });
+
+                it('fourth line', function() {
+                    expect(lines[3]).to.be.equal('01234 67');
+                });
+            });
+
+            describe('justification with new lines', function() {
+                           //0123456789 123456789
+                var input = '0123 56 89 abcdef\n' +
+                            '012 45678 0abc efg ' +
+                            '01234567890abcdefghi ' +
+                            '01234 67';
+                var lines = format.lines(input, { filler: '', ansi: false, width: 20, justify: true });
+
+                it('has 3 lines', function() {
+                    expect(lines.length).to.be.equal(4);
+                });
+
+                it('first line', function() {
+                    expect(lines[0]).to.be.equal('0123 56 89 abcdef');
+                });
+
+                it('second line', function() {
+                    expect(lines[1]).to.be.equal('012  45678  0abc efg');
+                });
+
+                it('third line', function() {   //01234567890123456789
+                    expect(lines[2]).to.be.equal('01234567890abcdefghi');
+                });
+
+                it('fourth line', function() {
+                    expect(lines[3]).to.be.equal('01234 67');
                 });
             });
         });
