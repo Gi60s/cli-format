@@ -1,3 +1,5 @@
+[![npm badge](https://nodei.co/npm/cli-format.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/cli-format.png?downloads=true&downloadRank=true&stars=true)
+
 # cli-format
 
 A command line formatting that makes it easy to manage word wrapping, indents, padding, columns, and more. Also works with ansi-encoding libraries chalk, colors, and others.
