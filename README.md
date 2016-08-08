@@ -1,3 +1,5 @@
+[![npm module downloads](http://img.shields.io/npm/dt/cli-format.svg)](https://www.npmjs.org/package/cli-format)
+
 [![npm badge](https://nodei.co/npm/cli-format.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/cli-format.png?downloads=true&downloadRank=true&stars=true)
 
 # cli-format
