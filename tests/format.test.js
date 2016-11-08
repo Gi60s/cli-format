@@ -18,7 +18,7 @@ describe('format', function() {
     describe('#columns.lines', function() {
 
         describe('one column', function() {
-            var lines = format.columns.lines(['01234 678 012'], { width: 10 });
+            var lines = format.columns.lines(['01234 678 012'], { ansi: false, width: 10 });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -35,7 +35,7 @@ describe('format', function() {
         });
 
         describe('two column', function() {
-            var lines = format.columns.lines(['01234 678 012', 'abcd fghij lmnop'], { width: 20, paddingMiddle: '' });
+            var lines = format.columns.lines(['01234 678 012', 'abcd fghij lmnop'], { ansi: false, width: 20, paddingMiddle: '' });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -52,7 +52,7 @@ describe('format', function() {
         });
 
         describe('two columns, first with more lines', function() {
-            var lines = format.columns.lines(['01234 678 012', 'abcd'], { width: 20, paddingMiddle: '' });
+            var lines = format.columns.lines(['01234 678 012', 'abcd'], { ansi: false, width: 20, paddingMiddle: '' });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -69,7 +69,7 @@ describe('format', function() {
         });
 
         describe('two columns, second with more lines', function() {
-            var lines = format.columns.lines(['abcd', '01234 678 012'], { width: 20, paddingMiddle: '' });
+            var lines = format.columns.lines(['abcd', '01234 678 012'], { ansi: false, width: 20, paddingMiddle: '' });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -86,7 +86,7 @@ describe('format', function() {
         });
 
         describe('two columns padding middle', function() {
-            var lines = format.columns.lines(['01234 678 012', 'abcd'], { width: 20, paddingMiddle: ' | ' });
+            var lines = format.columns.lines(['01234 678 012', 'abcd'], { ansi: false, width: 20, paddingMiddle: ' | ' });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -103,7 +103,7 @@ describe('format', function() {
         });
 
         describe('two columns with new line', function() {
-            var lines = format.columns.lines(['abcd', '01234\n01 2345'], { width: 20, paddingMiddle: '' });
+            var lines = format.columns.lines(['abcd', '01234\n01 2345'], { ansi: false, width: 20, paddingMiddle: '' });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -699,7 +699,7 @@ describe('format', function() {
 
     describe('#wrap', function() {
         var input = '123 56 890 2345';
-        var result = format.wrap(input, { width: 10 });
+        var result = format.wrap(input, { ansi: false, width: 10 });
 
         it('has two lines', function() {
             expect(result.split('\n').length).to.be.equal(2);
