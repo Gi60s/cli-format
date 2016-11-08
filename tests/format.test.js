@@ -657,6 +657,50 @@ describe('format', function() {
 
     });
 
+    describe('#trim', function() {
+
+        describe('without ansi', function() {
+
+            it('trims start', function() {
+                expect(format.trim('   abc   ', true, false)).to.equal('abc   ');
+            });
+
+            it('trims end', function() {
+                expect(format.trim('   abc   ', false, true)).to.equal('   abc');
+            });
+
+            it('trims some of start', function() {
+                expect(format.trim('   abc   ', 2, false)).to.equal(' abc   ');
+            });
+
+            it('trims some of end', function() {
+                expect(format.trim('   abc   ', false, 2)).to.equal('   abc ');
+            });
+
+        });
+
+        describe('with ansi', function() {
+
+            it('trims start', function() {
+                expect(format.trim(chalk.blue('   abc   '), true, false)).to.equal('\u001b[34mabc   \u001b[39m');
+            });
+
+            it('trims end', function() {
+                expect(format.trim(chalk.blue('   abc   '), false, true)).to.equal('\u001b[34m   abc\u001b[39m');
+            });
+
+            it('trims some of start', function() {
+                expect(format.trim(chalk.blue('   abc   '), 2, false)).to.equal('\u001b[34m abc   \u001b[39m');
+            });
+
+            it('trims some of end', function() {
+                expect(format.trim(chalk.blue('   abc   '), false, 2)).to.equal('\u001b[34m   abc \u001b[39m');
+            });
+
+        });
+
+    });
+
     describe('#width', function() {
 
         it('double width character', function() {
