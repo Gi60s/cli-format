@@ -24,18 +24,18 @@ Format.columns.lines = function(columns, configuration) {
     var widthPerColumnModulus;
 
     // build the default column configuration
-    defaultColumnConfig = Object.assign({}, formatConfig.config);
+    defaultColumnConfig = Object.assign({}, formatConfig.config, config);
     delete defaultColumnConfig.width;
 
     // turn all columns into objects
-    columns = columns.map(function(config) {
+    columns = columns.map(function(column) {
         var result;
-        if (typeof config === 'string') {
-            result = { content: config };
-        } else if (!config || typeof config !== 'object') {
+        if (typeof column === 'string') {
+            result = { content: column };
+        } else if (!column || typeof column !== 'object') {
             result = { content: '' };
         } else {
-            result = config;
+            result = column;
         }
         result = Object.assign({}, defaultColumnConfig, result);
         if (!result.filler) result.filler = ' ';
@@ -83,7 +83,7 @@ Format.columns.lines = function(columns, configuration) {
     // put together the result
     for (i = 0; i < totalLines; i++) {
         line = [];
-        columnsLines.forEach(function(lines, colIndex) {
+        columnsLines.forEach(function(lines) {
             line.push(lines[i]);
         });
         result.push(line.join(config.paddingMiddle));
@@ -244,7 +244,7 @@ Format.lines = function(str, configuration) {
     if (config.ansi) {
         index = 0;
         lines = lines
-            .map(function(line, rowIndex) {
+            .map(function(line) {
                 return line
                     .split('')
                     .map(function(ch, colIndex) {
@@ -367,7 +367,7 @@ Format.transform = function(str, configuration) {
     var config = Object.assign({}, formatConfig.transform, configuration || {});
     Object.keys(config).forEach(function(key) {
         var value = config[key];
-        str = str.replace(RegExp(key.replace(/\\/g, '\\\\')), value);
+        str = str.replace(new RegExp(key.replace(/\\/g, '\\\\')), value);
     });
     return str;
 };
@@ -384,7 +384,7 @@ Format.trim = function(str, start, end) {
     var template = '([' + ansi.escape.join('') + ']\\[(?:(?:\\d;?)+)+m)?';
 
     //trim the start
-    rx = RegExp('^' + template + ' ');
+    rx = new RegExp('^' + template + ' ');
     if (typeof start == 'number' && start <= 0) start = false;
     while (rx.test(str) && start) {
         str = str.replace(rx, '$1');
@@ -395,7 +395,7 @@ Format.trim = function(str, start, end) {
     }
 
     //trim the end
-    rx = RegExp(' ' + template + '$');
+    rx = new RegExp(' ' + template + '$');
     if (typeof end == 'number' && end <= 0) end = false;
     while (rx.test(str) && end) {
         str = str.replace(rx, '$1');
