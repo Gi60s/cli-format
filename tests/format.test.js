@@ -18,7 +18,10 @@ describe('format', function() {
     describe('#columns.lines', function() {
 
         describe('one column', function() {
-            var lines = format.columns.lines(['01234 678 012'], { ansi: false, width: 10 });
+            var lines;
+            before(function() {
+                lines = format.columns.lines(['01234 678 012'], { ansi: false, width: 10 });
+            });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -35,7 +38,10 @@ describe('format', function() {
         });
 
         describe('two column', function() {
-            var lines = format.columns.lines(['01234 678 012', 'abcd fghij lmnop'], { ansi: false, width: 20, paddingMiddle: '' });
+            var lines;
+            before(function() {
+                lines = format.columns.lines(['01234 678 012', 'abcd fghij lmnop'], { ansi: false, width: 20, paddingMiddle: '' });
+            });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -52,7 +58,10 @@ describe('format', function() {
         });
 
         describe('two columns, first with more lines', function() {
-            var lines = format.columns.lines(['01234 678 012', 'abcd'], { ansi: false, width: 20, paddingMiddle: '' });
+            var lines;
+            before(function() {
+                lines = format.columns.lines(['01234 678 012', 'abcd'], { ansi: false, width: 20, paddingMiddle: '' });
+            });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -69,7 +78,10 @@ describe('format', function() {
         });
 
         describe('two columns, second with more lines', function() {
-            var lines = format.columns.lines(['abcd', '01234 678 012'], { ansi: false, width: 20, paddingMiddle: '' });
+            var lines;
+            before(function() {
+                lines = format.columns.lines(['abcd', '01234 678 012'], { ansi: false, width: 20, paddingMiddle: '' });
+            });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -86,7 +98,10 @@ describe('format', function() {
         });
 
         describe('two columns padding middle', function() {
-            var lines = format.columns.lines(['01234 678 012', 'abcd'], { ansi: false, width: 20, paddingMiddle: ' | ' });
+            var lines;
+            before(function() {
+                lines = format.columns.lines(['01234 678 012', 'abcd'], { ansi: false, width: 20, paddingMiddle: ' | ' });
+            });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -103,7 +118,10 @@ describe('format', function() {
         });
 
         describe('two columns with new line', function() {
-            var lines = format.columns.lines(['abcd', '01234\n01 2345'], { ansi: false, width: 20, paddingMiddle: '' });
+            var lines;
+            before(function() {
+                lines = format.columns.lines(['abcd', '01234\n01 2345'], { ansi: false, width: 20, paddingMiddle: '' });
+            });
 
             it('has two lines', function() {
                 expect(lines.length).to.equal(2);
@@ -117,6 +135,44 @@ describe('format', function() {
                 expect(lines[1]).to.equal('          01 2345   ');
             });
 
+        });
+
+        describe('two columns with different configurations', function() {
+            var lines;
+            before(function() {
+                var config = { ansi: false, paddingMiddle: '' };
+                lines = format.columns.lines([
+                    { content: '1234 678 0123', ansi: false, width: 10 },
+                    { content: '123456 89012 4567 123456', ansi: true, width: 20 }
+                ], config);
+            });
+
+            it('has two lines', function() {
+                expect(lines.length).to.equal(2);
+            });
+
+            it('first line', function() {
+                expect(lines[0]).to.equal('1234 678  \u001b[0m123456 89012 4567 \u001b[0m  \u001b[0m');
+            });
+
+            it('second line', function() {
+                expect(lines[1]).to.equal('0123      \u001b[0m123456\u001b[0m              \u001b[0m');
+            });
+        });
+
+        describe('two columns, first is empty', function() {
+            var lines;
+            before(function() {
+                lines = format.columns.lines([null, '1234'], { ansi: false, paddingMiddle: '', width: 20 });
+            });
+
+            it('has one line', function() {
+                expect(lines.length).to.equal(1);
+            });
+
+            it('first line', function() {
+                expect(lines[0]).to.equal('          1234      ');
+            });
         });
     });
 
