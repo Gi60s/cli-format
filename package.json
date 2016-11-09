@@ -13,12 +13,13 @@
     "chai": "^3.5.0",
     "chalk": "^1.1.1",
     "colors": "^1.1.2",
+    "coveralls": "^2.11.14",
     "mocha": "^3.1.2",
     "nyc": "^8.4.0",
     "tape": "^4.2.2"
   },
   "scripts": {
-    "test": "nyc mocha tests/*.js"
+    "test": "nyc mocha tests/*.js && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
