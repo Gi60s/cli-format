@@ -1,6 +1,9 @@
-[![npm module downloads](http://img.shields.io/npm/dt/cli-format.svg)](https://www.npmjs.org/package/cli-format)
-
 [![npm badge](https://nodei.co/npm/cli-format.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/cli-format.png?downloads=true&downloadRank=true&stars=true)
+
+[![NPM version](https://img.shields.io/npm/v/binary-case.svg?style=flat)](https://npmjs.org/package/cli-format)
+[![npm module downloads](http://img.shields.io/npm/dt/cli-format.svg)](https://www.npmjs.org/package/cli-format)
+[![Build status](https://img.shields.io/travis/Gi60s/cli-format.svg?style=flat)](https://travis-ci.org/Gi60s/cli-format)
+[![Test coverage](https://img.shields.io/coveralls/Gi60s/cli-format.svg?style=flat)](https://coveralls.io/r/Gi60s/cli-format?branch=master)
 
 # cli-format
 
