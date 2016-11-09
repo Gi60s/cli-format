@@ -176,6 +176,15 @@ describe('format', function() {
         });
     });
 
+    describe('#column.wrap', function() {
+
+        it('has two lines', function() {
+            var result = format.columns.wrap(['123 567 1234', '123456 890 0123'], { ansi: false, paddingMiddle: '', width: 22 });
+            expect(result).to.equal('123 567    123456 890\n1234       0123      ');
+        });
+
+    });
+
     describe('#justify', function() {
 
         it('equal justification', function() {
